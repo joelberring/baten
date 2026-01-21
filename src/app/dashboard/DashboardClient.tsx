@@ -322,15 +322,15 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                             const net = s.ib + s.currentPaid - s.currentDebt + s.currentSent - s.currentReceived;
                                             return (
                                                 <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
-                                                    <td><strong>{name}</strong></td>
-                                                    <td>{Math.round(s.currentPaid)} kr</td>
-                                                    <td>-{Math.round(s.currentDebt)} kr</td>
-                                                    <td style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
+                                                    <td data-label="Medlem"><strong>{name}</strong></td>
+                                                    <td data-label="Utlägg">{Math.round(s.currentPaid)} kr</td>
+                                                    <td data-label="Skuld">-{Math.round(s.currentDebt)} kr</td>
+                                                    <td data-label="Skuldreglering" style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
                                                         {Math.round(s.currentSent - s.currentReceived)} kr
                                                     </td>
-                                                    <td>{Math.round(s.ib)} kr</td>
-                                                    <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>{Math.round(net)} kr</td>
-                                                    <td>
+                                                    <td data-label={`IB (${year})`}>{Math.round(s.ib)} kr</td>
+                                                    <td data-label="Netto Balans" className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>{Math.round(net)} kr</td>
+                                                    <td data-label="Åtgärd">
                                                         {net < 0 && name === currentUser && (
                                                             <button
                                                                 onClick={() => {

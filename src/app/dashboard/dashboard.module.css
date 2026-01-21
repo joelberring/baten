@@ -475,3 +475,12 @@
         font-size: 1.5rem;
     }
 }
+@media (max-width: 600px) {
+    .overviewTable thead { display: none; }
+    .overviewTable tr { display: block; margin-bottom: 2rem; background: rgba(255, 255, 255, 0.03); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--glass-border); }
+    .overviewTable td { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border: none; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+    .overviewTable td::before { content: attr(data-label); font-weight: 700; text-transform: uppercase; font-size: 0.65rem; color: var(--brass); }
+    .overviewTable td:first-child { border-bottom: 2px solid var(--glass-border); margin-bottom: 1rem; padding-bottom: 1rem; justify-content: center; }
+    .overviewTable td:first-child::before { display: none; }
+    .overviewTable td:first-child strong { font-size: 1.2rem; color: var(--brass); }
+}
