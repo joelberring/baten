@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart } from "lucide-react";
+import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
@@ -14,6 +14,7 @@ type SortOrder = 'asc' | 'desc';
 type Mode = "list" | "excel" | "ledger" | "overview";
 
 const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"];
+const CATEGORIES = ["Bränsle", "Underhåll", "Hamnavgift", "Försäkring", "Utrustning", "Övrigt"];
 
 export default function DashboardClient({ searchParams }: { searchParams: Promise<{ mode?: string, year?: string }> }) {
     const { data: session, status } = useSession();
@@ -25,6 +26,9 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
     const [allPayments, setAllPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
+
+    // Sök & Filter
+    const [searchQuery, setSearchQuery] = useState("");
 
     const [sortConfig, setSortConfig] = useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
     const [showSettlement, setShowSettlement] = useState(false);
@@ -46,22 +50,20 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                 setLoading(false);
             }
         }
-        if (status === "authenticated") {
-            fetchData();
-        }
+        if (status === "authenticated") fetchData();
     }, [status]);
 
     const currentUser = session?.user?.name || "Joel Berring";
 
-    // Beräkna balans för alla medlemmar (inklusive carry-over)
+    // Data-beräkningar
     const accountingData = useMemo(() => {
         const selectedYearInt = parseInt(year);
-
         const partnerStats = PARTNERS.reduce((acc, name) => {
             acc[name] = { ib: 0, currentPaid: 0, currentReceived: 0, currentSent: 0 };
             return acc;
         }, {} as Record<string, { ib: number, currentPaid: number, currentReceived: number, currentSent: number }>);
 
+        const categoryStats: Record<string, number> = {};
         let totalYearExpenses = 0;
 
         allExpenses.forEach(exp => {
@@ -76,6 +78,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
             } else if (y === selectedYearInt) {
                 partnerStats[exp.payerName].currentPaid += exp.amount;
                 totalYearExpenses += exp.amount;
+                categoryStats[exp.category] = (categoryStats[exp.category] || 0) + exp.amount;
             }
         });
 
@@ -83,7 +86,6 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
             if (p.status !== "Slutförd") return;
             const y = parseInt(p.year);
             const amount = p.amount;
-
             if (y < selectedYearInt) {
                 if (partnerStats[p.from]) partnerStats[p.from].ib += amount;
                 if (partnerStats[p.to]) partnerStats[p.to].ib -= amount;
@@ -96,23 +98,23 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         const currentYearExpenses = allExpenses.filter(e => e.year === year);
         const currentYearPayments = allPayments.filter(p => p.year === year);
 
-        return {
-            partnerStats,
-            totalYearExpenses,
-            currentExpenses: currentYearExpenses,
-            currentPayments: currentYearPayments
-        };
+        return { partnerStats, totalYearExpenses, currentExpenses: currentYearExpenses, currentPayments: currentYearPayments, categoryStats };
     }, [allExpenses, allPayments, year]);
 
-    // UI-vänlig balans för aktuella användaren (Status-rutan)
-    const userBalance = accountingData.partnerStats[currentUser].ib +
-        (accountingData.partnerStats[currentUser].currentPaid - (accountingData.totalYearExpenses / 3)) +
-        accountingData.partnerStats[currentUser].currentSent -
-        accountingData.partnerStats[currentUser].currentReceived;
+    // Sökfiltrering
+    const filteredExpenses = useMemo(() => {
+        if (!searchQuery) return accountingData.currentExpenses;
+        const q = searchQuery.toLowerCase();
+        return accountingData.currentExpenses.filter(e =>
+            e.description.toLowerCase().includes(q) ||
+            e.category.toLowerCase().includes(q) ||
+            e.payerName.toLowerCase().includes(q)
+        );
+    }, [accountingData.currentExpenses, searchQuery]);
 
-    // Sortera utlägg
+    // Sortering
     const sortedExpenses = useMemo(() => {
-        const sorted = [...accountingData.currentExpenses];
+        const sorted = [...filteredExpenses];
         sorted.sort((a, b) => {
             const valA = a[sortConfig.field];
             const valB = b[sortConfig.field];
@@ -126,11 +128,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
             return 0;
         });
         return sorted;
-    }, [accountingData.currentExpenses, sortConfig]);
+    }, [filteredExpenses, sortConfig]);
 
-    if (status === "unauthenticated") {
-        redirect("/login");
-    }
+    const userBalance = accountingData.partnerStats[currentUser].ib +
+        (accountingData.partnerStats[currentUser].currentPaid - (accountingData.totalYearExpenses / 3)) +
+        accountingData.partnerStats[currentUser].currentSent -
+        accountingData.partnerStats[currentUser].currentReceived;
+
+    if (status === "unauthenticated") redirect("/login");
 
     const years = ["2026", "2025", "2024"];
 
@@ -161,18 +166,13 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         const formData = new FormData(e.target as HTMLFormElement);
         const amount = parseFloat(formData.get('amount') as string);
         const to = formData.get('to') as string;
-
         if (!amount || !to) return;
-
         setIsSavingPayment(true);
         try {
             await savePayment({
-                from: currentUser,
-                to: to,
-                amount: amount,
+                from: currentUser, to: to, amount: amount,
                 date: new Date().toISOString().split('T')[0],
-                description: "Skuldbetalning via Dashboard",
-                status: "Slutförd"
+                description: "Skuldbetalning via Dashboard", status: "Slutförd"
             });
             window.location.reload();
         } catch (err) {
@@ -224,8 +224,22 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         </div>
                     </section>
 
+                    <section className={`${styles.chartSection} glass`}>
+                        <h2>Spendering per kategori</h2>
+                        <div className={styles.chartLegend}>
+                            {Object.entries(accountingData.categoryStats).map(([cat, val], idx) => (
+                                <div key={cat} className={styles.legendItem}>
+                                    <div className={styles.legendColor} style={{ background: `hsl(${idx * 45}, 60%, 50%)` }}></div>
+                                    <span>{cat}</span>
+                                    <strong>{Math.round((val / accountingData.totalYearExpenses) * 100)}%</strong>
+                                </div>
+                            ))}
+                            {Object.keys(accountingData.categoryStats).length === 0 && <p className={styles.noData}>Inga utlägg än.</p>}
+                        </div>
+                    </section>
+
                     <section className={`${styles.settleSection} glass`}>
-                        <h2>Registrera Betalning</h2>
+                        <h2>Registrera Swish</h2>
                         {!showSettlement ? (
                             <button className={styles.avraknaBtn} onClick={() => setShowSettlement(true)}>
                                 <ArrowRight size={16} /> Markera som betald
@@ -233,10 +247,8 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         ) : (
                             <form onSubmit={handleSettleUp} className={styles.settleForm}>
                                 <select name="to" required defaultValue="">
-                                    <option value="" disabled>Vem betalade du?</option>
-                                    {PARTNERS.filter(n => n !== currentUser).map(n => (
-                                        <option key={n} value={n}>{n}</option>
-                                    ))}
+                                    <option value="" disabled>Till vem?</option>
+                                    {PARTNERS.filter(n => n !== currentUser).map(n => <option key={n} value={n}>{n}</option>)}
                                 </select>
                                 <input type="number" name="amount" placeholder="Belopp (kr)" required />
                                 <div className={styles.formActions}>
@@ -245,21 +257,6 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                 </div>
                             </form>
                         )}
-                    </section>
-
-                    <section className={`${styles.payments} glass`}>
-                        <h2>Genomförda Betalningar ({year})</h2>
-                        <div className={styles.paymentList}>
-                            {accountingData.currentPayments.map((p, idx) => (
-                                <div key={idx} className={styles.paymentItem}>
-                                    <div className={styles.pInfo}>
-                                        <span>{p.from} betalade {p.to}</span>
-                                        <span className={styles.pDate}>{p.date}</span>
-                                    </div>
-                                    <strong>{Math.round(p.amount)} kr</strong>
-                                </div>
-                            ))}
-                        </div>
                     </section>
                 </aside>
 
@@ -270,6 +267,18 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                             <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}><TableIcon size={18} /> Huvudbok</button>
                             <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}><PieChart size={18} /> Årsöversikt</button>
                         </div>
+
+                        <div className={styles.searchBar}>
+                            <Search size={18} className={styles.searchIcon} />
+                            <input
+                                type="text"
+                                placeholder="Sök utlägg, kategori, person..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                            />
+                            {searchQuery && <X size={14} className={styles.clearSearch} onClick={() => setSearchQuery("")} />}
+                        </div>
+
                         <div className={styles.actions}>
                             <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}><Plus size={18} /> Nytt utlägg</button>
                         </div>
@@ -316,9 +325,6 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                         </tr>
                                     </tbody>
                                 </table>
-                                <div className={styles.overviewHint}>
-                                    <p>Netto Balans är det slutgiltiga beloppet som medlemmen ska få tillbaka (+) eller betala (-) för att alla ska vara kvitterade.</p>
-                                </div>
                             </div>
                         ) : mode === 'ledger' ? (
                             <div className={styles.ledgerWrapper}>
@@ -334,11 +340,9 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {year !== "2024" && (
+                                        {year !== "2024" && searchQuery === "" && (
                                             <>
-                                                <tr className={styles.ibHeaderRow}>
-                                                    <td colSpan={6}><strong>Ingående balans från tidigare år</strong></td>
-                                                </tr>
+                                                <tr className={styles.ibHeaderRow}><td colSpan={6}><strong>Ingående balans från tidigare år</strong></td></tr>
                                                 {PARTNERS.map(name => (
                                                     <tr key={name} className={styles.ibRow}>
                                                         <td colSpan={4}>{name}</td>

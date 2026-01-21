@@ -62,19 +62,102 @@
 
 .stats,
 .payments,
-.settleSection {
+.settleSection,
+.chartSection {
     padding: 1.5rem;
     border-radius: 12px;
 }
 
 .stats h2,
 .payments h2,
-.settleSection h2 {
-    font-size: 0.9rem;
+.settleSection h2,
+.chartSection h2 {
+    font-size: 0.8rem;
     margin-bottom: 1.5rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
+    letter-spacing: 0.08em;
     color: var(--brass);
+}
+
+/* Category Chart Styling */
+.chartLegend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.legendItem {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.legendColor {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+}
+
+.legendItem span {
+    flex: 1;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.legendItem strong {
+    color: var(--brass);
+}
+
+.noData {
+    font-size: 0.8rem;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* Search Bar */
+.searchBar {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 2rem;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 1rem;
+    color: rgba(255, 255, 255, 0.3);
+}
+
+.searchBar input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    border-radius: 20px;
+    padding: 0.6rem 1rem 0.6rem 3rem;
+    color: white;
+    font-family: inherit;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+}
+
+.searchBar input:focus {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--brass);
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
+}
+
+.clearSearch {
+    position: absolute;
+    right: 1rem;
+    color: rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}
+
+.clearSearch:hover {
+    color: white;
 }
 
 .statRow {
@@ -90,7 +173,7 @@
 }
 
 .statItem p {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: rgba(255, 255, 255, 0.6);
 }
 
@@ -260,10 +343,10 @@
 }
 
 .ibRow td {
-    color: rgba(255, 255, 255, 0.5);
+    color: rgba(255, 255, 255, 0.3);
     font-style: italic;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding-top: 0.4rem;
+    padding-bottom: 0.4rem;
 }
 
 .amount {
@@ -281,18 +364,10 @@
     color: var(--brass);
 }
 
-.overviewHint {
-    padding: 1.5rem;
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
-    font-style: italic;
-    line-height: 1.5;
-}
-
 .deleteMini {
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.1);
     cursor: pointer;
     padding: 0.25rem;
     transition: all 0.2s;
@@ -310,5 +385,15 @@
 @media (max-width: 1100px) {
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    .searchBar {
+        margin: 1rem 0;
+        max-width: none;
+        order: 3;
+    }
+
+    .logHeader {
+        flex-wrap: wrap;
     }
 }

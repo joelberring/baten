@@ -15,6 +15,13 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Viggen Utlägg - Båtkostnader för Albin Viggen",
   description: "Hantera utlägg och bokföring för er Albin Viggen",
+  manifest: "/manifest.json",
+  themeColor: "#0a192f",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Viggen Utlägg",
+  },
 };
 
 import AuthProvider from "@/components/auth/AuthProvider";
