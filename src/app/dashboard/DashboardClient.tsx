@@ -14,13 +14,17 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     const router = useRouter();
     const resolvedParams = use(searchParams);
     const mode = (resolvedParams.mode || "list") as "list" | "excel" | "ledger";
-    const year = resolvedParams.year || "2026";
+    const year = resolvedParams.year || new Date().getFullYear().toString();
 
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
     const [paying, setPaying] = useState(false);
     const [paid, setPaid] = useState(false);
+
+    // Dynamisk årslista
+    const currentYearNum = new Date().getFullYear();
+    const years = Array.from({ length: currentYearNum - 2024 + 1 }, (_, i) => (2024 + i).toString()).reverse();
 
     useEffect(() => {
         async function fetchData() {
@@ -47,17 +51,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         redirect("/login");
     }
 
-    if (status === "loading" || (loading && expenses.length === 0 && year !== "2026")) {
+    if (status === "loading" || (loading && expenses.length === 0 && year !== new Date().getFullYear().toString())) {
         return <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Laddar båtens loggbok...</div>;
     }
-
-    const years = ["2026", "2025", "2024"];
 
     const currentUser = session?.user?.name || "Joel Berring";
     let toReceive = 0;
     let toPay = 0;
 
-    // Räkna ut baserat på utlägg
     expenses.forEach(exp => {
         const share = exp.amount / 3;
         if (exp.payerName === currentUser) {
@@ -67,7 +68,6 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         }
     });
 
-    // Justera för genomförda betalningar
     payments.forEach(p => {
         if (p.status === "Slutförd") {
             if (p.from === currentUser) {
