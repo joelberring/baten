@@ -285,7 +285,9 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                     </div>
 
                     <div className={styles.content}>
-                        {mode === 'overview' ? (
+                        {mode === 'excel' ? (
+                            <ExcelMode />
+                        ) : mode === 'overview' ? (
                             <div className={styles.overviewWrapper}>
                                 <table className={styles.overviewTable}>
                                     <thead>

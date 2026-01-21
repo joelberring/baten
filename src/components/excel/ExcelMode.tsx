@@ -5,8 +5,17 @@ import styles from "./excel.module.css";
 import { Save, Trash2, Plus, CheckCircle2 } from "lucide-react";
 import { saveMultipleExpenses } from "@/lib/expenseService";
 
+import { useSession } from "next-auth/react";
+
 export default function ExcelMode() {
-    const [rows, setRows] = useState<any[]>([]);
+    const { data: session } = useSession();
+    const [rows, setRows] = useState<any[]>([{
+        id: Date.now(),
+        date: new Date().toISOString().split('T')[0],
+        desc: "",
+        amount: 0,
+        category: "Övrigt"
+    }]);
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
 
@@ -37,7 +46,7 @@ export default function ExcelMode() {
                 description: desc,
                 amount,
                 category,
-                payerName: "Joel", // För enkelhetens skull i demot, bör vara dynamic
+                payerName: session?.user?.name || "Joel Berring",
             }));
 
             await saveMultipleExpenses(expensesToSave);
