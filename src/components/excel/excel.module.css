@@ -1,16 +1,18 @@
 .excelContainer {
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: rgba(10, 25, 47, 0.5);
-    border-radius: 12px;
-    border: 1px solid var(--glass-border);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
 }
 
 .excelHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+}
+
+.excelHeader h2 {
+    font-size: 1.1rem;
+    color: var(--brass);
 }
 
 .excelActions {
@@ -20,54 +22,78 @@
 
 .saveBtn {
     background: #10b981;
-    color: white;
-    padding: 0.6rem 1.2rem;
+    color: var(--navy-deep);
     border: none;
     border-radius: 6px;
-    cursor: pointer;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.saveBtn:hover {
+    background: #059669;
+    transform: translateY(-1px);
+}
+
+.saveBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.saveBtn.saved {
+    background: #059669;
+    color: white;
 }
 
 .tableWrapper {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 1rem;
+    border: 1px solid var(--glass-border);
     overflow-x: auto;
 }
 
 .table {
     width: 100%;
     border-collapse: collapse;
-    color: var(--ocean-white);
 }
 
 .table th {
     text-align: left;
-    padding: 1rem;
-    border-bottom: 2px solid var(--glass-border);
-    font-size: 0.9rem;
-    text-transform: uppercase;
+    padding: 0.75rem;
     color: var(--brass);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--glass-border);
 }
 
 .table td {
-    padding: 0.5rem;
-    border-bottom: 1px solid var(--glass-border);
+    padding: 0.75rem 0.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .table input,
 .table select {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(0, 0, 0, 0.2);
     border: 1px solid var(--glass-border);
     color: white;
     padding: 0.5rem;
-    border-radius: 4px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
 }
 
-.table input:focus {
-    outline: 1px solid var(--brass);
-    background: rgba(255, 255, 255, 0.1);
+.table input:focus,
+.table select:focus {
+    outline: none;
+    border-color: var(--brass);
+    background: rgba(0, 0, 0, 0.4);
 }
 
 .deleteBtn {
@@ -76,4 +102,21 @@
     color: #ef4444;
     cursor: pointer;
     padding: 0.5rem;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    background: rgba(239, 68, 68, 0.1);
+    transform: scale(1.1);
+}
+
+.emptyState {
+    text-align: center;
+    padding: 3rem;
+    color: rgba(255, 255, 255, 0.4);
+    font-style: italic;
 }

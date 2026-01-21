@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Hantera utlägg och bokföring för er Albin Viggen",
 };
 
+import AuthProvider from "@/components/auth/AuthProvider";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="sv">
       <body className={`${geistSans.variable} ${geistMono.variable}`}>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   );

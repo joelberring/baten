@@ -27,16 +27,25 @@
     gap: 1.5rem;
 }
 
-.yearLink {
+.yearNav button {
+    background: transparent;
+    border: none;
+    font-family: inherit;
+    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.5);
     font-weight: 600;
     transition: all 0.2s;
-    text-decoration: none;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
 }
 
-.yearLink:hover,
-.activeYear {
+.yearNav button:hover,
+.yearNav button.activeYear {
     color: var(--brass);
+}
+
+.yearLink {
+    text-decoration: none;
 }
 
 .grid {
@@ -113,10 +122,21 @@
     color: var(--navy-deep);
     border: none;
     border-radius: 4px;
-    padding: 0.3rem 0.8rem;
-    font-size: 0.75rem;
+    padding: 0.4rem 1rem;
+    font-size: 0.8rem;
     font-weight: 700;
     cursor: pointer;
+    transition: all 0.2s;
+}
+
+.payBtn:hover {
+    transform: translateY(-1px);
+    filter: brightness(1.1);
+}
+
+.payBtn.paid {
+    background: #10b981;
+    color: white;
 }
 
 .pInfo {
@@ -149,7 +169,7 @@
     gap: 0.25rem;
 }
 
-.tab {
+.viewTabs button {
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -161,12 +181,36 @@
     border-radius: 6px;
     font-weight: 600;
     transition: all 0.2s;
-    text-decoration: none;
+    font-family: inherit;
 }
 
-.tab.active {
+.viewTabs button.active {
     background: var(--brass);
     color: var(--navy-deep);
+}
+
+.actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.exportBtn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.exportBtn:hover {
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .content {
@@ -177,6 +221,45 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
+}
+
+.ledgerWrapper {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+}
+
+.ledgerTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+}
+
+.ledgerTable th {
+    background: rgba(184, 134, 11, 0.1);
+    color: var(--brass);
+    text-align: left;
+    padding: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+}
+
+.ledgerTable td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.amount {
+    font-weight: 700;
+    text-align: right;
+}
+
+.totalRow {
+    background: rgba(255, 255, 255, 0.05);
+    font-weight: 800;
+    color: var(--brass);
 }
 
 @media (max-width: 1100px) {

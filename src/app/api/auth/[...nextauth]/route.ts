@@ -1,7 +1,5 @@
 import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import { FirestoreAdapter } from "@auth/firebase-adapter";
-import { db } from "@/lib/firebase";
 
 export const authOptions = {
     providers: [
@@ -10,20 +8,43 @@ export const authOptions = {
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         }),
     ],
-    // @ts-ignore
-    adapter: FirestoreAdapter(db),
+    // Vi använder JWT istället för en databas-adapter för inloggningen.
+    // Det är mer robust och gör att vi slipper krångliga inställningar just nu.
+    session: {
+        strategy: "jwt" as const,
+        maxAge: 30 * 24 * 60 * 60, // 30 dagar
+    },
     callbacks: {
-        async session({ session, user }: any) {
+        async signIn({ user }: any) {
+            const allowedEmails = [
+                "joel@berring.se",
+                // Lägg till de andra här sen!
+            ];
+
+            if (user.email && allowedEmails.includes(user.email.toLowerCase())) {
+                return true;
+            }
+            return false;
+        },
+        async jwt({ token, user }: any) {
+            if (user) {
+                token.id = user.id;
+            }
+            return token;
+        },
+        async session({ session, token }: any) {
             if (session?.user) {
-                session.user.id = user.id;
+                // @ts-ignore
+                session.user.id = token.id;
             }
             return session;
         },
     },
     pages: {
         signIn: '/login',
-        error: '/auth/error',
+        error: '/login',
     },
+    secret: process.env.NEXTAUTH_SECRET,
 };
 
 const handler = NextAuth(authOptions);
