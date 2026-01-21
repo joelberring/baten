@@ -24,7 +24,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport = {
-  themeColor: "#0a192f",
+  themeColor: "#FFFFFF",
 };
 
 import AuthProvider from "@/components/auth/AuthProvider";

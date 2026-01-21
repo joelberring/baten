@@ -1,25 +1,34 @@
 :root {
-  /* Nautical Color Palette */
-  --navy-deep: #0a192f;
-  --navy-light: #172a45;
-  --brass: #c5a059;
-  --brass-bright: #e6c27a;
-  --wood: #3e2723;
-  --wood-light: #5d4037;
-  --ocean-white: #f8fafd;
-  --glass-bg: rgba(255, 255, 255, 0.1);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  
-  --foreground: var(--ocean-white);
-  --background: var(--navy-deep);
-  
-  --font-main: var(--font-geist-sans), system-ui, sans-serif;
+  /* Clean Iconic Viggen Palette */
+  --bg-main: #FFFFFF;
+  --bg-secondary: #F8FAFC;
+
+  --text-main: #0F172A;
+  --text-secondary: #64748B;
+
+  /* Accents */
+  --viggen-orange: #E25822;
+  --viggen-orange-hover: #C5451A;
+  --viggen-navy: #0A192F;
+  --viggen-blue-soft: #E0F2FE;
+
+  /* Borders */
+  --border-light: #E2E8F0;
+
+  /* Fonts */
+  --font-main: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
+
+  /* Keeping dark mode neutral but readable, if system requests it,
+     though main design is light-focused */
   :root {
-    --background: #020617;
-    --foreground: #f8fafc;
+    --bg-main: #0F172A;
+    --bg-secondary: #1E293B;
+    --text-main: #F8FAFC;
+    --text-secondary: #94A3B8;
+    --border-light: #334155;
   }
 }
 
@@ -34,9 +43,10 @@ body {
   max-width: 100vw;
   overflow-x: hidden;
   font-family: var(--font-main);
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--bg-main);
+  color: var(--text-main);
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -44,29 +54,48 @@ a {
   text-decoration: none;
 }
 
-/* Glassmorphism Utility */
-.glass {
-  background: var(--glass-bg);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid var(--glass-border);
+/* New Modern Utility Classes */
+.card-clean {
+  background: var(--bg-main);
+  border: 1px solid var(--border-light);
   border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  /* Extremely subtle shadow */
 }
 
-/* Button Styles */
-.btn-brass {
-  background: var(--brass);
-  color: var(--navy-deep);
+/* Replaces old .btn-brass */
+.btn-primary {
+  background: var(--viggen-orange);
+  color: white;
   padding: 0.8rem 1.5rem;
   border: none;
-  border-radius: 8px;
+  border-radius: 50px;
+  /* Pill shape */
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-primary:active {
+  transform: scale(0.98);
+}
+
+.btn-secondary {
+  background: var(--bg-secondary);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
+  padding: 0.8rem 1.5rem;
+  border-radius: 50px;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.btn-brass:hover {
-  background: var(--brass-bright);
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(197, 160, 89, 0.3);
+/* Feed List Styles */
+ul.clean-list {
+  list-style: none;
 }

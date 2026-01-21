@@ -14,21 +14,20 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
         id: Date.now(),
         date: new Date().toISOString().split('T')[0],
         desc: "",
-        amount: 0,
+        amount: '', // Changed to empty string initially to avoid 0 placeholder
         category: "Övrigt",
         participants: [...PARTNERS],
         receiptUrl: ""
     }]);
     const [isSaving, setIsSaving] = useState(false);
     const [uploadingId, setUploadingId] = useState<number | null>(null);
-    const fileInputRef = useRef<HTMLInputElement>(null);
 
     const addRow = () => {
         setRows([...rows, {
             id: Date.now(),
             date: new Date().toISOString().split('T')[0],
             desc: "",
-            amount: 0,
+            amount: '',
             category: "Övrigt",
             participants: [...PARTNERS],
             receiptUrl: ""
@@ -73,13 +72,18 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
     };
 
     const saveAll = async () => {
-        if (rows.length === 0) return;
+        const validRows = rows.filter(r => r.amount && r.amount > 0 && r.desc);
+        if (validRows.length === 0) {
+            alert("Fyll i minst ett belopp och beskrivning.");
+            return;
+        }
+
         setIsSaving(true);
         try {
-            const expensesToSave = rows.map(({ date, desc, amount, category, participants, receiptUrl }) => ({
+            const expensesToSave = validRows.map(({ date, desc, amount, category, participants, receiptUrl }) => ({
                 date,
                 description: desc,
-                amount,
+                amount: parseFloat(amount),
                 category,
                 participants,
                 receiptUrl,
@@ -99,81 +103,101 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
     return (
         <div className={styles.excelContainer}>
             <div className={styles.excelHeader}>
-                <h2>Mata in utlägg</h2>
-                <div className={styles.excelActions}>
-                    <div className={styles.totalBadge}>
-                        Totalt: {Math.round(rows.reduce((sum, r) => sum + (r.amount || 0), 0))} kr
-                    </div>
-                    <button onClick={addRow} className="btn-brass"><Plus size={16} /> Ny rad</button>
-                    <button onClick={saveAll} className={styles.saveBtn} disabled={isSaving || rows.length === 0}>
-                        {isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}
-                        Spara allt
-                    </button>
+                <h2>Lägg till utlägg</h2>
+                <div className={styles.totalBadge}>
+                    Totalt: {Math.round(rows.reduce((sum, r) => sum + (parseFloat(r.amount) || 0), 0))} kr
                 </div>
             </div>
 
-            <div className={styles.tableWrapper}>
-                <table className={styles.table}>
-                    <thead>
-                        <tr>
-                            <th>Datum</th>
-                            <th>Beskrivning</th>
-                            <th>Belopp</th>
-                            <th>Kategori</th>
-                            <th>Vem delar?</th>
-                            <th>Kvitto</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {rows.map((row) => (
-                            <tr key={row.id}>
-                                <td data-label="Datum"><input type="date" value={row.date} onChange={(e) => updateRow(row.id, 'date', e.target.value)} /></td>
-                                <td data-label="Beskrivning"><input type="text" value={row.desc} onChange={(e) => updateRow(row.id, 'desc', e.target.value)} placeholder="T.ex. Hamnavgift" /></td>
-                                <td data-label="Belopp"><input type="number" value={row.amount} onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)} /></td>
-                                <td data-label="Kategori">
-                                    <select value={row.category} onChange={(e) => updateRow(row.id, 'category', e.target.value)}>
-                                        <option value="Underhåll">Underhåll</option>
-                                        <option value="Bränsle">Bränsle</option>
-                                        <option value="Hamnavgift">Hamnavgift</option>
-                                        <option value="Försäkring">Försäkring</option>
-                                        <option value="Mat">Mat</option>
-                                        <option value="Övrigt">Övrigt</option>
-                                    </select>
-                                </td>
-                                <td data-label="Vem delar?">
-                                    <div className={styles.splitToggle}>
-                                        {PARTNERS.map(name => (
-                                            <button
-                                                key={name}
-                                                onClick={() => toggleParticipant(row.id, name)}
-                                                className={row.participants.includes(name) ? styles.activeSplit : ''}
-                                            >
-                                                {name[0]}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </td>
-                                <td data-label="Kvitto">
-                                    <div className={styles.uploadCell}>
-                                        <input
-                                            type="file"
-                                            className="hidden"
-                                            id={`file-${row.id}`}
-                                            onChange={(e) => handleFileUpload(e, row.id)}
-                                            accept="image/*"
-                                        />
-                                        <label htmlFor={`file-${row.id}`} className={styles.uploadBtn}>
-                                            {uploadingId === row.id ? <Loader2 className="animate-spin" size={14} /> :
-                                                row.receiptUrl ? <CheckCircle2 size={14} color="#10b981" /> : <Camera size={14} />}
-                                        </label>
-                                    </div>
-                                </td>
-                                <td data-label=""><button onClick={() => removeRow(row.id)} className={styles.deleteBtn}><Trash2 size={16} /></button></td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+            <div className={styles.formList}>
+                {rows.map((row) => (
+                    <div key={row.id} className={styles.card}>
+                        <button onClick={() => removeRow(row.id)} className={styles.deleteRowBtn}>
+                            <Trash2 size={20} />
+                        </button>
+
+                        <div className={styles.amountGroup}>
+                            <input
+                                type="number"
+                                className={styles.amountInput}
+                                value={row.amount}
+                                onChange={(e) => updateRow(row.id, 'amount', e.target.value)}
+                                placeholder="0"
+                                autoFocus={rows.length === 1}
+                            />
+                            <span className={styles.currencyLabel}>Kronor (SEK)</span>
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabel}>Beskrivning</label>
+                            <input
+                                type="text"
+                                className={styles.textInput}
+                                value={row.desc}
+                                onChange={(e) => updateRow(row.id, 'desc', e.target.value)}
+                                placeholder="Vad köpte du?"
+                            />
+                        </div>
+
+                        <div className={styles.inputGroup}>
+                            <label className={styles.inputLabel}>Kategori</label>
+                            <select className={styles.categorySelect} value={row.category} onChange={(e) => updateRow(row.id, 'category', e.target.value)}>
+                                <option value="Mat">Mat & Dryck</option>
+                                <option value="Hamnavgift">Hamnavgift</option>
+                                <option value="Bränsle">Bränsle</option>
+                                <option value="Underhåll">Underhåll & Fix</option>
+                                <option value="Försäkring">Försäkring</option>
+                                <option value="Övrigt">Övrigt</option>
+                            </select>
+                        </div>
+
+                        <div className={styles.splitSection}>
+                            <span className={styles.splitLabel}>Vilka ska dela på detta?</span>
+                            <div className={styles.avatars}>
+                                {PARTNERS.map(name => {
+                                    const isActive = row.participants.includes(name);
+                                    return (
+                                        <button
+                                            key={name}
+                                            onClick={() => toggleParticipant(row.id, name)}
+                                            className={`${styles.avatarToggle} ${isActive ? styles.active : ''}`}
+                                        >
+                                            <div className={styles.avatarCircle}>
+                                                {isActive ? <CheckCircle2 size={24} /> : name[0]}
+                                            </div>
+                                            <span className={styles.avatarName}>{name.split(' ')[0]}</span>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        <div className={styles.receiptSection}>
+                            <input
+                                type="file"
+                                className="hidden"
+                                id={`file-${row.id}`}
+                                onChange={(e) => handleFileUpload(e, row.id)}
+                                accept="image/*"
+                                style={{ display: 'none' }}
+                            />
+                            <label htmlFor={`file-${row.id}`} className={`${styles.uploadBtn} ${row.receiptUrl ? styles.hasFile : ''}`}>
+                                {uploadingId === row.id ? <Loader2 className="animate-spin" size={16} /> :
+                                    row.receiptUrl ? <><CheckCircle2 size={16} /> Kvitto Uppladdat</> : <><Camera size={16} /> Fota Kvitto</>}
+                            </label>
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            <div className={styles.mainActions}>
+                <button onClick={addRow} className={styles.addMoreBtn}>
+                    <Plus size={16} style={{ display: 'inline', verticalAlign: 'middle' }} /> Lägg till ett utlägg till
+                </button>
+                <button onClick={saveAll} className={styles.saveBtn} disabled={isSaving}>
+                    {isSaving ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
+                    <span>Spara Utlägg</span>
+                </button>
             </div>
         </div>
     );

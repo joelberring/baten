@@ -201,245 +201,227 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     return (
         <main className={styles.container}>
             <header className={styles.header}>
-                <div className={styles.heroOverlay}>
-                    <img src="/assets/boat/boat_profile.jpg" alt="Viggen" className={styles.heroImage} />
+                <div className={styles.logo} onClick={() => router.push('/dashboard')}>
+                    <Anchor size={24} color="var(--viggen-orange)" />
+                    <span>Viggen Utlägg</span>
                 </div>
-                <div className={styles.headerContent}>
-                    <div className={styles.logo} onClick={() => router.push('/dashboard')}>
-                        <Anchor size={28} color="var(--brass)" />
-                        <span>Viggen Utlägg</span>
-                    </div>
-                    <nav className={styles.yearNav}>
-                        {years.map(y => (
-                            <button key={y} onClick={() => router.push(`?year=${y}&mode=${mode}`)} className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}>
-                                {y}
-                            </button>
-                        ))}
-                    </nav>
-                    <div className={styles.user}><span>{session?.user?.name}</span></div>
-                </div>
+                <nav className={styles.yearNav}>
+                    {years.map(y => (
+                        <button key={y} onClick={() => router.push(`?year=${y}&mode=${mode}`)} className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}>
+                            {y}
+                        </button>
+                    ))}
+                </nav>
+                <div className={styles.user}><span>{session?.user?.name?.split(' ')[0]}</span></div>
             </header>
 
             <div className={styles.grid}>
-                <aside className={styles.sidebar}>
-                    <section className={`${styles.stats} glass`}>
-                        <h2>Status {year}</h2>
-                        <div className={styles.statRow}>
-                            <div className={styles.statItem}>
-                                <TrendingUp color="#10b981" />
-                                <div><p>Att få tillbaka</p><strong>{Math.max(0, Math.round(userBalance > 0 ? userBalance : 0))} kr</strong></div>
-                            </div>
-                            <div className={styles.statItem}>
-                                <TrendingDown color="#ef4444" />
-                                <div><p>Att betala</p><strong>{Math.max(0, Math.round(userBalance < 0 ? -userBalance : 0))} kr</strong></div>
-                            </div>
-                        </div>
-                    </section>
-
-                    <section className={`${styles.settleSection} glass`}>
-                        <div className={styles.sectionHeader}>
-                            <h2>Registrera Betalning</h2>
-                            <Smartphone size={16} color="var(--brass)" />
-                        </div>
-                        <p className={styles.hintText}>Har du swishat någon? Registrera det här för att nollställa din skuld.</p>
-                        {!showSettlement ? (
-                            <button className={styles.avraknaBtn} onClick={() => setShowSettlement(true)}>
-                                <Plus size={16} /> Lägg in betalning
-                            </button>
-                        ) : (
-                            <form onSubmit={handleSettleUp} className={styles.settleForm}>
-                                <select name="to" required defaultValue="">
-                                    <option value="" disabled>Vem betalade du?</option>
-                                    {PARTNERS.filter(n => n !== currentUser).map(n => <option key={n} value={n}>{n}</option>)}
-                                </select>
-                                <input type="number" name="amount" placeholder="Belopp (kr)" required />
-                                <div className={styles.formActions}>
-                                    <button type="button" onClick={() => setShowSettlement(false)}>Avbryt</button>
-                                    <button type="submit" disabled={isSavingPayment} className={styles.saveBtn}>Spara</button>
-                                </div>
-                            </form>
-                        )}
-                    </section>
-
-                    <section className={`${styles.chartSection} glass`}>
-                        <h2>Utgifter per kategori</h2>
-                        <div className={styles.chartLegend}>
-                            {Object.entries(accountingData.categoryStats).map(([cat, val], idx) => (
-                                <div key={cat} className={styles.legendItem}>
-                                    <div className={styles.legendColor} style={{ background: `hsl(${idx * 45}, 60%, 50%)` }}></div>
-                                    <span>{cat}</span><strong>{accountingData.totalYearExpenses > 0 ? Math.round((val / accountingData.totalYearExpenses) * 100) : 0}%</strong>
-                                </div>
-                            ))}
-                            {Object.keys(accountingData.categoryStats).length === 0 && (
-                                <p className={styles.noDataText}>Inga utlägg i år</p>
-                            )}
-                        </div>
-                    </section>
-
-                    <div className={styles.boatMood}>
-                        <img src="/assets/boat/crew_deck.jpg" alt="Besättning" className={styles.moodImage} />
-                    </div>
-                </aside>
-
-                <section className={`${styles.log} glass`}>
-                    <div className={styles.logHeader}>
-                        <div className={styles.viewTabs}>
-                            <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}>Loggbok</button>
-                            <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}>Huvudbok</button>
-                            <button onClick={() => router.push(`?mode=payments&year=${year}`)} className={`${styles.tab} ${mode === 'payments' ? styles.active : ''}`}>Betalningar</button>
-                            <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}>Årsöversikt</button>
-                        </div>
-                        <div className={styles.searchBar}>
-                            <Search size={16} className={styles.searchIcon} />
-                            <input type="text" placeholder="Sök..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                        </div>
-                        <div className={styles.actions}>
-                            <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}><Plus size={18} /> Nytt utlägg</button>
-                        </div>
+                {/* Status Card */}
+                <section className={styles.statsCard}>
+                    <div className={styles.balanceLabel}>Mitt Saldo ({year})</div>
+                    <div className={`${styles.balanceAmount} ${userBalance >= 0 ? styles.positive : styles.negative}`}>
+                        {userBalance >= 0 ? '+' : ''}{Math.round(userBalance)} kr
                     </div>
 
-                    <div className={styles.content}>
-                        {mode === 'excel' ? <ExcelMode onSave={() => {
-                            fetchData();
-                            router.push(`?mode=ledger&year=${year}`);
-                        }} /> : mode === 'overview' ? (
-                            <div className={styles.overviewWrapper}>
-                                <table className={styles.overviewTable}>
-                                    <thead>
-                                        <tr>
-                                            <th>Medlem</th>
-                                            <th>Utlägg</th>
-                                            <th>Skuld</th>
-                                            <th>Skuldreglering</th>
-                                            <th>IB ({year})</th>
-                                            <th>Netto Balans</th>
-                                            <th>Åtgärd</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {PARTNERS.map(name => {
-                                            const s = accountingData.partnerStats[name];
-                                            const net = s.ib + s.currentPaid - s.currentDebt + s.currentSent - s.currentReceived;
-                                            return (
-                                                <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
-                                                    <td data-label="Medlem"><strong>{name}</strong></td>
-                                                    <td data-label="Utlägg">{Math.round(s.currentPaid)} kr</td>
-                                                    <td data-label="Skuld">-{Math.round(s.currentDebt)} kr</td>
-                                                    <td data-label="Skuldreglering" style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
-                                                        {Math.round(s.currentSent - s.currentReceived)} kr
-                                                    </td>
-                                                    <td data-label={`IB (${year})`}>{Math.round(s.ib)} kr</td>
-                                                    <td data-label="Netto Balans" className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>{Math.round(net)} kr</td>
-                                                    <td data-label="Åtgärd">
-                                                        {net < 0 && name === currentUser && (
-                                                            <button
-                                                                onClick={() => {
-                                                                    const amount = Math.abs(Math.round(net));
-                                                                    // För en riktig app skulle vi hämta motpartens telefonnummer här.
-                                                                    // Swish djuplänk format: swish://payment?data={...}
-                                                                    alert(`Öppnar Swish för att betala ${amount} kr. (Här skulle en djuplänk triggas om telefonnummer fanns registrerat)`);
-                                                                }}
-                                                                className={styles.swishBtnSmall}
-                                                            >
-                                                                Swisha
-                                                            </button>
-                                                        )}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
+                    <div className={styles.quickActions}>
+                        <button className={styles.actionButton} onClick={() => setShowSettlement(true)}>
+                            <div className={styles.actionCircle}>
+                                <Smartphone size={20} />
                             </div>
-                        ) : mode === 'ledger' ? (
-                            <div className={styles.ledgerWrapper}>
-                                <table className={styles.ledgerTable}>
-                                    <thead>
-                                        <tr>
-                                            <th onClick={() => toggleSort('date')}>Datum</th>
-                                            <th onClick={() => toggleSort('description')}>Beskrivning</th>
-                                            <th onClick={() => toggleSort('category')}>Kategori</th>
-                                            <th onClick={() => toggleSort('payerName')}>Betalare</th>
-                                            <th>Split</th>
-                                            <th onClick={() => toggleSort('amount')} className={styles.amountHead}>Belopp</th>
-                                            <th>Bilaga</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {sortedExpenses.map(exp => (
-                                            <tr key={exp.id}>
-                                                <td>{exp.date}</td>
-                                                <td>{exp.description}</td>
-                                                <td>{exp.category}</td>
-                                                <td>{exp.payerName}</td>
-                                                <td className={styles.participantsCell}>{exp.participants ? `${exp.participants.length}/3` : "3/3"}</td>
-                                                <td className={styles.amount}>{Math.round(exp.amount)} kr</td>
-                                                <td className={styles.receiptCell}>
-                                                    {exp.receiptUrl ? (
-                                                        <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
-                                                            <ImageIcon size={16} />
-                                                        </a>
-                                                    ) : <span className={styles.noReceipt}>-</span>}
-                                                </td>
-                                                <td className={styles.actionsCell}>
-                                                    <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                            <span>Betala</span>
+                        </button>
+                        <button className={styles.actionButton} onClick={() => router.push(`?mode=overview&year=${year}`)}>
+                            <div className={styles.actionCircle}>
+                                <PieChart size={20} />
                             </div>
-                        ) : mode === 'payments' ? (
-                            <div className={styles.ledgerWrapper}>
-                                <table className={styles.ledgerTable}>
-                                    <thead>
-                                        <tr>
-                                            <th>Datum</th>
-                                            <th>Från</th>
-                                            <th>Till</th>
-                                            <th>Beskrivning</th>
-                                            <th className={styles.amountHead}>Belopp</th>
-                                            <th></th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filteredPayments.map(pay => (
-                                            <tr key={pay.id}>
-                                                <td>{pay.date}</td>
-                                                <td>{pay.from}</td>
-                                                <td>{pay.to}</td>
-                                                <td>{pay.description}</td>
-                                                <td className={styles.amount}>{Math.round(pay.amount)} kr</td>
-                                                <td className={styles.actionsCell}>
-                                                    <button onClick={() => handleDeletePayment(pay.id!, pay.from)} className={styles.deleteMini}><Trash2 size={14} /></button>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                        ) : (
-                            <div className={styles.expenseList}>
-                                {sortedExpenses.length === 0 ? (
-                                    <div className={styles.emptyState}>
-                                        <ImageIcon size={48} className={styles.emptyIcon} />
-                                        <p>Här var det tomt! Inga utlägg hittades för {year}.</p>
-                                        <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}>Mata in första utlägget</button>
-                                    </div>
-                                ) : sortedExpenses.map(exp => (
-                                    <ExpenseItem
-                                        key={exp.id}
-                                        expense={exp}
-                                        onDelete={handleDelete}
-                                        currentUserName={currentUser}
-                                    />
-                                ))}
-                            </div>
-                        )}
+                            <span>Översikt</span>
+                        </button>
                     </div>
                 </section>
+
+                {/* Main Views */}
+                <div className={styles.viewTabs}>
+                    <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}>Loggbok</button>
+                    <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}>Huvudbok</button>
+                    <button onClick={() => router.push(`?mode=payments&year=${year}`)} className={`${styles.tab} ${mode === 'payments' ? styles.active : ''}`}>Betalningar</button>
+                    <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}>Årsöversikt</button>
+                </div>
+
+                {/* Actions Bar with Search and New Expense Button */}
+                <div className={styles.actionsBar}>
+                    <div className={styles.searchBar}>
+                        <Search size={16} className={styles.searchIcon} />
+                        <input type="text" placeholder="Sök utlägg..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
+                    </div>
+                    <button className={styles.primaryAction} onClick={() => router.push(`?mode=excel&year=${year}`)}>
+                        <Plus size={18} /> Nytt utlägg
+                    </button>
+                </div>
+
+                {/* Content Area */}
+                <div className={styles.feed}>
+                    {/* Settlement Form Modal/Inline */}
+                    {showSettlement && (
+                        <div className={styles.modalOverlay} onClick={() => setShowSettlement(false)}>
+                            <div className={styles.modalContent} onClick={e => e.stopPropagation()}>
+                                <h2>Registrera Betalning</h2>
+                                <form onSubmit={handleSettleUp} className={styles.settleForm}>
+                                    <select name="to" required defaultValue="" className={styles.input}>
+                                        <option value="" disabled>Vem betalade du?</option>
+                                        {PARTNERS.filter(n => n !== currentUser).map(n => <option key={n} value={n}>{n}</option>)}
+                                    </select>
+                                    <input type="number" name="amount" placeholder="Belopp (kr)" required className={styles.input} />
+                                    <div className={styles.formActions}>
+                                        <button type="button" onClick={() => setShowSettlement(false)} className={styles.btnSecondary}>Avbryt</button>
+                                        <button type="submit" disabled={isSavingPayment} className="btn-primary">Spara Betalning</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    )}
+
+                    {mode === 'excel' ? <ExcelMode onSave={() => {
+                        fetchData();
+                        router.push(`?mode=list&year=${year}`);
+                    }} /> : mode === 'overview' ? (
+                        <div className={styles.ledgerWrapper}>
+                            <table className={styles.ledgerTable}>
+                                <thead>
+                                    <tr>
+                                        <th>Medlem</th>
+                                        <th>Utl\u00e4gg</th>
+                                        <th>Skuld</th>
+                                        <th>Skuldreglering</th>
+                                        <th>IB ({year})</th>
+                                        <th>Netto Balans</th>
+                                        <th>\u00c5tg\u00e4rd</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {PARTNERS.map(name => {
+                                        const s = accountingData.partnerStats[name];
+                                        const net = s.ib + s.currentPaid - s.currentDebt + s.currentSent - s.currentReceived;
+                                        return (
+                                            <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
+                                                <td style={{ fontWeight: 600 }}>{name}</td>
+                                                <td>{Math.round(s.currentPaid)} kr</td>
+                                                <td>-{Math.round(s.currentDebt)} kr</td>
+                                                <td style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
+                                                    {Math.round(s.currentSent - s.currentReceived)} kr
+                                                </td>
+                                                <td>{Math.round(s.ib)} kr</td>
+                                                <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>
+                                                    {Math.round(net)} kr
+                                                </td>
+                                                <td>
+                                                    {net < 0 && name === currentUser && (
+                                                        <button
+                                                            className={styles.swishLink}
+                                                            onClick={() => alert(`\u00d6ppnar Swish f\u00f6r att betala ${Math.abs(Math.round(net))} kr`)}
+                                                        >
+                                                            Swisha
+                                                        </button>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : mode === 'ledger' ? (
+                        <div className={styles.ledgerWrapper}>
+                            <table className={styles.ledgerTable}>
+                                <thead>
+                                    <tr>
+                                        <th onClick={() => toggleSort('date')}>Datum</th>
+                                        <th onClick={() => toggleSort('description')}>Beskrivning</th>
+                                        <th onClick={() => toggleSort('category')}>Kategori</th>
+                                        <th onClick={() => toggleSort('payerName')}>Betalare</th>
+                                        <th>Split</th>
+                                        <th onClick={() => toggleSort('amount')} className={styles.amountHead}>Belopp</th>
+                                        <th>Bilaga</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {sortedExpenses.map(exp => (
+                                        <tr key={exp.id}>
+                                            <td>{exp.date}</td>
+                                            <td style={{ fontWeight: 500 }}>{exp.description}</td>
+                                            <td>{exp.category}</td>
+                                            <td>{exp.payerName}</td>
+                                            <td className={styles.splitCell}>{exp.participants ? `${exp.participants.length}/3` : "3/3"}</td>
+                                            <td className={styles.amount}>{Math.round(exp.amount)} kr</td>
+                                            <td className={styles.receiptCell}>
+                                                {exp.receiptUrl ? (
+                                                    <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
+                                                        <ImageIcon size={16} />
+                                                    </a>
+                                                ) : <span className={styles.noReceipt}>-</span>}
+                                            </td>
+                                            <td className={styles.actionsCell}>
+                                                <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : mode === 'payments' ? (
+                        <div className={styles.ledgerWrapper}>
+                            <table className={styles.ledgerTable}>
+                                <thead>
+                                    <tr>
+                                        <th>Datum</th>
+                                        <th>Från</th>
+                                        <th>Till</th>
+                                        <th>Belopp</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredPayments.map(pay => (
+                                        <tr key={pay.id}>
+                                            <td>{pay.date}</td>
+                                            <td>{pay.from.split(' ')[0]}</td>
+                                            <td>{pay.to.split(' ')[0]}</td>
+                                            <td className={styles.amount}>{Math.round(pay.amount)} kr</td>
+                                            <td className={styles.actionsCell}>
+                                                <button onClick={() => handleDeletePayment(pay.id!, pay.from)} className={styles.deleteMini}><Trash2 size={14} /></button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className={styles.expenseList}>
+                            {sortedExpenses.length === 0 ? (
+                                <div className={styles.emptyState}>
+                                    <ImageIcon size={48} className={styles.emptyIcon} />
+                                    <p>Inga utlägg. Dags att segla?</p>
+                                </div>
+                            ) : sortedExpenses.map(exp => (
+                                <ExpenseItem
+                                    key={exp.id}
+                                    expense={exp}
+                                    onDelete={handleDelete}
+                                    currentUserName={currentUser}
+                                />
+                            ))}
+                        </div>
+                    )}
+                </div>
             </div>
+
+            {/* Floating Action Button for New Expense */}
+            {mode !== 'excel' && (
+                <button className={styles.fab} onClick={() => router.push(`?mode=excel&year=${year}`)}>
+                    <Plus size={24} color="white" />
+                    <span className={styles.fabLabel}>Nytt Utlägg</span>
+                </button>
+            )}
         </main>
     );
 }
