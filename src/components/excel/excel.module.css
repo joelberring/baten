@@ -1,17 +1,19 @@
 .excelContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid var(--glass-border);
 }
 
 .excelHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 1.5rem;
 }
 
 .excelHeader h2 {
-    font-size: 1.1rem;
+    font-size: 1rem;
     color: var(--brass);
 }
 
@@ -20,40 +22,7 @@
     gap: 1rem;
 }
 
-.saveBtn {
-    background: #10b981;
-    color: var(--navy-deep);
-    border: none;
-    border-radius: 6px;
-    padding: 0.5rem 1rem;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.saveBtn:hover {
-    background: #059669;
-    transform: translateY(-1px);
-}
-
-.saveBtn:disabled {
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-.saveBtn.saved {
-    background: #059669;
-    color: white;
-}
-
 .tableWrapper {
-    background: rgba(255, 255, 255, 0.05);
-    border-radius: 12px;
-    padding: 1rem;
-    border: 1px solid var(--glass-border);
     overflow-x: auto;
 }
 
@@ -65,15 +34,13 @@
 .table th {
     text-align: left;
     padding: 0.75rem;
-    color: var(--brass);
     font-size: 0.75rem;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    border-bottom: 1px solid var(--glass-border);
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .table td {
-    padding: 0.75rem 0.5rem;
+    padding: 0.5rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -84,39 +51,79 @@
     border: 1px solid var(--glass-border);
     color: white;
     padding: 0.5rem;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    transition: border-color 0.2s;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 0.85rem;
 }
 
-.table input:focus,
-.table select:focus {
-    outline: none;
-    border-color: var(--brass);
-    background: rgba(0, 0, 0, 0.4);
+.splitToggle {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.splitToggle button {
+    width: 24px;
+    height: 24px;
+    border-radius: 4px;
+    border: 1px solid var(--glass-border);
+    background: transparent;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.activeSplit {
+    background: var(--brass) !important;
+    color: var(--navy-deep) !important;
+    border-color: var(--brass) !important;
+}
+
+.saveBtn {
+    background: #10b981;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 6px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.saveBtn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
 
 .deleteBtn {
     background: transparent;
     border: none;
-    color: #ef4444;
+    color: rgba(255, 255, 255, 0.2);
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0.4rem;
     transition: all 0.2s;
 }
 
 .deleteBtn:hover {
-    background: rgba(239, 68, 68, 0.1);
-    transform: scale(1.1);
+    color: #ef4444;
 }
 
-.emptyState {
-    text-align: center;
-    padding: 3rem;
+.swishBtnSmall {
+    background: #bc2b37;
+    color: white;
+    border: none;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.participantsCell {
+    font-size: 0.75rem;
     color: rgba(255, 255, 255, 0.4);
-    font-style: italic;
+    text-align: center;
 }

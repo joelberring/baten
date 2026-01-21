@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import styles from "./excel.module.css";
-import { Save, Trash2, Plus, CheckCircle2 } from "lucide-react";
+import { Save, Trash2, Plus, CheckCircle2, Users } from "lucide-react";
 import { saveMultipleExpenses } from "@/lib/expenseService";
-
 import { useSession } from "next-auth/react";
+
+const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"];
 
 export default function ExcelMode() {
     const { data: session } = useSession();
@@ -14,7 +15,8 @@ export default function ExcelMode() {
         date: new Date().toISOString().split('T')[0],
         desc: "",
         amount: 0,
-        category: "Övrigt"
+        category: "Övrigt",
+        participants: [...PARTNERS]
     }]);
     const [isSaving, setIsSaving] = useState(false);
     const [saved, setSaved] = useState(false);
@@ -25,7 +27,8 @@ export default function ExcelMode() {
             date: new Date().toISOString().split('T')[0],
             desc: "",
             amount: 0,
-            category: "Övrigt"
+            category: "Övrigt",
+            participants: [...PARTNERS]
         }]);
     };
 
@@ -37,15 +40,29 @@ export default function ExcelMode() {
         setRows(rows.map(row => row.id === id ? { ...row, [field]: value } : row));
     };
 
+    const toggleParticipant = (rowId: number, name: string) => {
+        setRows(rows.map(row => {
+            if (row.id === rowId) {
+                const current = row.participants || [];
+                const next = current.includes(name)
+                    ? current.filter((n: string) => n !== name)
+                    : [...current, name];
+                return { ...row, participants: next.length > 0 ? next : current };
+            }
+            return row;
+        }));
+    };
+
     const saveAll = async () => {
         if (rows.length === 0) return;
         setIsSaving(true);
         try {
-            const expensesToSave = rows.map(({ date, desc, amount, category }) => ({
+            const expensesToSave = rows.map(({ date, desc, amount, category, participants }) => ({
                 date,
                 description: desc,
                 amount,
                 category,
+                participants,
                 payerName: session?.user?.name || "Joel Berring",
             }));
 
@@ -53,13 +70,13 @@ export default function ExcelMode() {
 
             setIsSaving(false);
             setSaved(true);
-            setRows([]); // Töm listan efter lyckad sparning
+            setRows([]);
             setTimeout(() => setSaved(false), 3000);
-            window.location.reload(); // Enkel refresh för att visa i listan
+            window.location.reload();
         } catch (error) {
             console.error("Error saving:", error);
             setIsSaving(false);
-            alert("Kunde inte spara. Kontrollera dina Firebase-inställningar.");
+            alert("Kunde inte spara.");
         }
     };
 
@@ -68,14 +85,8 @@ export default function ExcelMode() {
             <div className={styles.excelHeader}>
                 <h2>Snabbmatning (Excel-läge)</h2>
                 <div className={styles.excelActions}>
-                    <button onClick={addRow} className="btn-brass">
-                        <Plus size={16} /> Lägg till rad
-                    </button>
-                    <button
-                        onClick={saveAll}
-                        className={`${styles.saveBtn} ${saved ? styles.saved : ''}`}
-                        disabled={isSaving || rows.length === 0}
-                    >
+                    <button onClick={addRow} className="btn-brass"><Plus size={16} /> Lägg till rad</button>
+                    <button onClick={saveAll} className={`${styles.saveBtn} ${saved ? styles.saved : ''}`} disabled={isSaving || rows.length === 0}>
                         {isSaving ? "Sparar..." : saved ? <><CheckCircle2 size={16} /> Sparat!</> : <><Save size={16} /> Spara allt</>}
                     </button>
                 </div>
@@ -87,66 +98,47 @@ export default function ExcelMode() {
                         <tr>
                             <th>Datum</th>
                             <th>Beskrivning</th>
-                            <th>Belopp (SEK)</th>
+                            <th>Belopp (kr)</th>
                             <th>Kategori</th>
-                            <th>Åtgärder</th>
+                            <th>Vilka delar?</th>
+                            <th></th>
                         </tr>
                     </thead>
                     <tbody>
                         {rows.map((row) => (
                             <tr key={row.id}>
+                                <td><input type="date" value={row.date} onChange={(e) => updateRow(row.id, 'date', e.target.value)} /></td>
+                                <td><input type="text" value={row.desc} onChange={(e) => updateRow(row.id, 'desc', e.target.value)} placeholder="T.ex. Bottenfärg" /></td>
+                                <td><input type="number" value={row.amount} onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)} /></td>
                                 <td>
-                                    <input
-                                        type="date"
-                                        value={row.date}
-                                        onChange={(e) => updateRow(row.id, 'date', e.target.value)}
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="text"
-                                        value={row.desc}
-                                        onChange={(e) => updateRow(row.id, 'desc', e.target.value)}
-                                        placeholder="T.ex. Bottenfärg"
-                                    />
-                                </td>
-                                <td>
-                                    <input
-                                        type="number"
-                                        value={row.amount}
-                                        onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)}
-                                    />
-                                </td>
-                                <td>
-                                    <select
-                                        value={row.category}
-                                        onChange={(e) => updateRow(row.id, 'category', e.target.value)}
-                                    >
+                                    <select value={row.category} onChange={(e) => updateRow(row.id, 'category', e.target.value)}>
                                         <option value="Bränsle">Bränsle</option>
                                         <option value="Underhåll">Underhåll</option>
                                         <option value="Hamnavgift">Hamnavgift</option>
-                                        <option value="Mat">Mat</option>
+                                        <option value="Försäkring">Försäkring</option>
+                                        <option value="Utrustning">Utrustning</option>
                                         <option value="Övrigt">Övrigt</option>
                                     </select>
                                 </td>
                                 <td>
-                                    <button
-                                        onClick={() => removeRow(row.id)}
-                                        className={styles.deleteBtn}
-                                        title="Ta bort rad"
-                                    >
-                                        <Trash2 size={16} />
-                                    </button>
+                                    <div className={styles.splitToggle}>
+                                        {PARTNERS.map(name => (
+                                            <button
+                                                key={name}
+                                                onClick={() => toggleParticipant(row.id, name)}
+                                                className={row.participants.includes(name) ? styles.activeSplit : ''}
+                                                title={name}
+                                            >
+                                                {name[0]}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </td>
+                                <td><button onClick={() => removeRow(row.id)} className={styles.deleteBtn}><Trash2 size={16} /></button></td>
                             </tr>
                         ))}
                     </tbody>
                 </table>
-                {rows.length === 0 && (
-                    <div className={styles.emptyState}>
-                        Inga rader tillagda. Klicka på "Lägg till rad" för att börja mata in nya utlägg.
-                    </div>
-                )}
             </div>
         </div>
     );

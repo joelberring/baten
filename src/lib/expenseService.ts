@@ -19,6 +19,7 @@ export interface Expense {
     payerName: string;
     date: string;
     year: string;
+    participants?: string[];
     createdAt: Timestamp;
 }
 
