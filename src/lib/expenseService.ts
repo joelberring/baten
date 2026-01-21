@@ -48,9 +48,7 @@ export const saveExpense = async (expense: Omit<Expense, "id" | "createdAt" | "y
 
 export const getExpenses = async (year: string) => {
     const q = query(
-        collection(db, EXPENSES_COLLECTION),
-        where("year", "==", year),
-        orderBy("date", "desc")
+        collection(db, EXPENSES_COLLECTION)
     );
 
     const querySnapshot = await getDocs(q);
@@ -80,9 +78,7 @@ export const savePayment = async (payment: Omit<Payment, "id" | "createdAt" | "y
 
 export const getPayments = async (year: string) => {
     const q = query(
-        collection(db, PAYMENTS_COLLECTION),
-        where("year", "==", year),
-        orderBy("date", "desc")
+        collection(db, PAYMENTS_COLLECTION)
     );
 
     const querySnapshot = await getDocs(q);

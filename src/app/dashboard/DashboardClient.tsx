@@ -2,40 +2,44 @@
 
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download } from "lucide-react";
+import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
-import { useState, use, useEffect } from "react";
-import { getExpenses, getPayments, Expense, Payment } from "@/lib/expenseService";
+import { useState, use, useEffect, useMemo } from "react";
+import { getExpenses, getPayments, Expense, Payment, savePayment, deleteExpense } from "@/lib/expenseService";
+
+type SortField = 'date' | 'description' | 'category' | 'payerName' | 'amount';
+type SortOrder = 'asc' | 'desc';
+type Mode = "list" | "excel" | "ledger" | "overview";
+
+const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"];
 
 export default function DashboardClient({ searchParams }: { searchParams: Promise<{ mode?: string, year?: string }> }) {
     const { data: session, status } = useSession();
     const router = useRouter();
     const resolvedParams = use(searchParams);
-    const mode = (resolvedParams.mode || "list") as "list" | "excel" | "ledger";
+    const mode = (resolvedParams.mode || "list") as Mode;
     const year = resolvedParams.year || new Date().getFullYear().toString();
 
-    const [expenses, setExpenses] = useState<Expense[]>([]);
-    const [payments, setPayments] = useState<Payment[]>([]);
+    const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
+    const [allPayments, setAllPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
-    const [paying, setPaying] = useState(false);
-    const [paid, setPaid] = useState(false);
 
-    // Dynamisk årslista
-    const currentYearNum = new Date().getFullYear();
-    const years = Array.from({ length: currentYearNum - 2024 + 1 }, (_, i) => (2024 + i).toString()).reverse();
+    const [sortConfig, setSortConfig] = useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
+    const [showSettlement, setShowSettlement] = useState(false);
+    const [isSavingPayment, setIsSavingPayment] = useState(false);
 
     useEffect(() => {
         async function fetchData() {
             setLoading(true);
             try {
                 const [expData, payData] = await Promise.all([
-                    getExpenses(year),
-                    getPayments(year)
+                    getExpenses("all"),
+                    getPayments("all")
                 ]);
-                setExpenses(expData);
-                setPayments(payData);
+                setAllExpenses(expData);
+                setAllPayments(payData);
             } catch (err) {
                 console.error("Error fetching data:", err);
             } finally {
@@ -45,83 +49,149 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         if (status === "authenticated") {
             fetchData();
         }
-    }, [year, status]);
+    }, [status]);
+
+    const currentUser = session?.user?.name || "Joel Berring";
+
+    // Beräkna balans för alla medlemmar (inklusive carry-over)
+    const accountingData = useMemo(() => {
+        const selectedYearInt = parseInt(year);
+
+        const partnerStats = PARTNERS.reduce((acc, name) => {
+            acc[name] = { ib: 0, currentPaid: 0, currentReceived: 0, currentSent: 0 };
+            return acc;
+        }, {} as Record<string, { ib: number, currentPaid: number, currentReceived: number, currentSent: number }>);
+
+        let totalYearExpenses = 0;
+
+        allExpenses.forEach(exp => {
+            const y = parseInt(exp.year);
+            const share = exp.amount / 3;
+
+            if (y < selectedYearInt) {
+                PARTNERS.forEach(p => {
+                    if (exp.payerName === p) partnerStats[p].ib += (exp.amount - share);
+                    else partnerStats[p].ib -= share;
+                });
+            } else if (y === selectedYearInt) {
+                partnerStats[exp.payerName].currentPaid += exp.amount;
+                totalYearExpenses += exp.amount;
+            }
+        });
+
+        allPayments.forEach(p => {
+            if (p.status !== "Slutförd") return;
+            const y = parseInt(p.year);
+            const amount = p.amount;
+
+            if (y < selectedYearInt) {
+                if (partnerStats[p.from]) partnerStats[p.from].ib += amount;
+                if (partnerStats[p.to]) partnerStats[p.to].ib -= amount;
+            } else if (y === selectedYearInt) {
+                if (partnerStats[p.from]) partnerStats[p.from].currentSent += amount;
+                if (partnerStats[p.to]) partnerStats[p.to].currentReceived += amount;
+            }
+        });
+
+        const currentYearExpenses = allExpenses.filter(e => e.year === year);
+        const currentYearPayments = allPayments.filter(p => p.year === year);
+
+        return {
+            partnerStats,
+            totalYearExpenses,
+            currentExpenses: currentYearExpenses,
+            currentPayments: currentYearPayments
+        };
+    }, [allExpenses, allPayments, year]);
+
+    // UI-vänlig balans för aktuella användaren (Status-rutan)
+    const userBalance = accountingData.partnerStats[currentUser].ib +
+        (accountingData.partnerStats[currentUser].currentPaid - (accountingData.totalYearExpenses / 3)) +
+        accountingData.partnerStats[currentUser].currentSent -
+        accountingData.partnerStats[currentUser].currentReceived;
+
+    // Sortera utlägg
+    const sortedExpenses = useMemo(() => {
+        const sorted = [...accountingData.currentExpenses];
+        sorted.sort((a, b) => {
+            const valA = a[sortConfig.field];
+            const valB = b[sortConfig.field];
+            if (valA === undefined || valB === undefined) return 0;
+            if (typeof valA === 'string' && typeof valB === 'string') {
+                return sortConfig.order === 'asc' ? valA.localeCompare(valB) : valB.localeCompare(valA);
+            }
+            if (typeof valA === 'number' && typeof valB === 'number') {
+                return sortConfig.order === 'asc' ? valA - valB : valB - valA;
+            }
+            return 0;
+        });
+        return sorted;
+    }, [accountingData.currentExpenses, sortConfig]);
 
     if (status === "unauthenticated") {
         redirect("/login");
     }
 
-    if (status === "loading" || (loading && expenses.length === 0 && year !== new Date().getFullYear().toString())) {
-        return <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Laddar båtens loggbok...</div>;
-    }
+    const years = ["2026", "2025", "2024"];
 
-    const currentUser = session?.user?.name || "Joel Berring";
-    let toReceive = 0;
-    let toPay = 0;
-
-    expenses.forEach(exp => {
-        const share = exp.amount / 3;
-        if (exp.payerName === currentUser) {
-            toReceive += (exp.amount - share);
-        } else {
-            toPay += share;
-        }
-    });
-
-    payments.forEach(p => {
-        if (p.status === "Slutförd") {
-            if (p.from === currentUser) {
-                toPay -= p.amount;
-            }
-            if (p.to === currentUser) {
-                toReceive -= p.amount;
-            }
-        }
-    });
-
-    const handlePay = () => {
-        setPaying(true);
-        setTimeout(() => {
-            setPaying(false);
-            setPaid(true);
-            setTimeout(() => setPaid(false), 3000);
-        }, 1500);
+    const toggleSort = (field: SortField) => {
+        setSortConfig(current => ({
+            field,
+            order: current.field === field && current.order === 'desc' ? 'asc' : 'desc'
+        }));
     };
 
-    const exportToCSV = () => {
-        const headers = ["Datum", "Beskrivning", "Kategori", "Betalare", "Belopp"];
-        const rows = expenses.map(e => [e.date, e.description, e.category, e.payerName, e.amount]);
+    const handleDelete = async (id: string, payerName: string) => {
+        if (payerName !== currentUser && !currentUser.includes("Joel")) {
+            alert("Du kan bara ta bort dina egna utlägg.");
+            return;
+        }
+        if (confirm("Är du säker på att du vill ta bort detta utlägg?")) {
+            try {
+                await deleteExpense(id);
+                setAllExpenses(allExpenses.filter(e => e.id !== id));
+            } catch (err) {
+                console.error("Error deleting:", err);
+            }
+        }
+    };
 
-        const csvContent = [
-            headers.join(","),
-            ...rows.map(r => r.join(","))
-        ].join("\n");
+    const handleSettleUp = async (e: React.FormEvent) => {
+        e.preventDefault();
+        const formData = new FormData(e.target as HTMLFormElement);
+        const amount = parseFloat(formData.get('amount') as string);
+        const to = formData.get('to') as string;
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement("a");
-        link.setAttribute("href", url);
-        link.setAttribute("download", `Viggen_Utlägg_${year}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        if (!amount || !to) return;
+
+        setIsSavingPayment(true);
+        try {
+            await savePayment({
+                from: currentUser,
+                to: to,
+                amount: amount,
+                date: new Date().toISOString().split('T')[0],
+                description: "Skuldbetalning via Dashboard",
+                status: "Slutförd"
+            });
+            window.location.reload();
+        } catch (err) {
+            console.error("Error saving payment:", err);
+            setIsSavingPayment(false);
+        }
     };
 
     return (
         <main className={styles.container}>
             <header className={styles.header}>
-                <div className={styles.logo}>
+                <div className={styles.logo} onClick={() => router.push('/dashboard')}>
                     <Anchor size={24} color="var(--brass)" />
                     <span>Viggen Utlägg</span>
                 </div>
 
                 <nav className={styles.yearNav}>
                     {years.map(y => (
-                        <button
-                            key={y}
-                            onClick={() => router.push(`?year=${y}&mode=${mode}`)}
-                            className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}
-                        >
+                        <button key={y} onClick={() => router.push(`?year=${y}&mode=${mode}`)} className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}>
                             {y}
                         </button>
                     ))}
@@ -141,54 +211,54 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                 <TrendingUp color="#10b981" />
                                 <div>
                                     <p>Att få tillbaka</p>
-                                    <strong>{Math.max(0, Math.round(toReceive - toPay > 0 ? toReceive - toPay : 0))} SEK</strong>
+                                    <strong>{Math.max(0, Math.round(userBalance > 0 ? userBalance : 0))} SEK</strong>
                                 </div>
                             </div>
                             <div className={styles.statItem}>
                                 <TrendingDown color="#ef4444" />
                                 <div>
                                     <p>Att betala</p>
-                                    <strong>{Math.max(0, Math.round(toPay - toReceive > 0 ? toPay - toReceive : 0))} SEK</strong>
+                                    <strong>{Math.max(0, Math.round(userBalance < 0 ? -userBalance : 0))} SEK</strong>
                                 </div>
                             </div>
                         </div>
                     </section>
 
-                    <section className={`${styles.debts} glass`}>
-                        <h2>Skulder & Avräkningar</h2>
-                        <div className={styles.debtList}>
-                            <div className={styles.debtItem}>
-                                <div className={styles.debtPair}>
-                                    <span>Skulder räknas ut automatiskt</span>
+                    <section className={`${styles.settleSection} glass`}>
+                        <h2>Registrera Betalning</h2>
+                        {!showSettlement ? (
+                            <button className={styles.avraknaBtn} onClick={() => setShowSettlement(true)}>
+                                <ArrowRight size={16} /> Markera som betald
+                            </button>
+                        ) : (
+                            <form onSubmit={handleSettleUp} className={styles.settleForm}>
+                                <select name="to" required defaultValue="">
+                                    <option value="" disabled>Vem betalade du?</option>
+                                    {PARTNERS.filter(n => n !== currentUser).map(n => (
+                                        <option key={n} value={n}>{n}</option>
+                                    ))}
+                                </select>
+                                <input type="number" name="amount" placeholder="Belopp (kr)" required />
+                                <div className={styles.formActions}>
+                                    <button type="button" onClick={() => setShowSettlement(false)}>Avbryt</button>
+                                    <button type="submit" disabled={isSavingPayment} className={styles.saveBtn}>Spara</button>
                                 </div>
-                                <button
-                                    className={`${styles.payBtn} ${paid ? styles.paid : ''}`}
-                                    onClick={handlePay}
-                                    disabled={paying}
-                                >
-                                    {paying ? "..." : paid ? "Betalat!" : "Avräkna"}
-                                </button>
-                            </div>
-                        </div>
+                            </form>
+                        )}
                     </section>
 
                     <section className={`${styles.payments} glass`}>
-                        <h2>Genomförda Betalningar</h2>
+                        <h2>Genomförda Betalningar ({year})</h2>
                         <div className={styles.paymentList}>
-                            {payments.map((p, idx) => (
+                            {accountingData.currentPayments.map((p, idx) => (
                                 <div key={idx} className={styles.paymentItem}>
                                     <div className={styles.pInfo}>
                                         <span>{p.from} betalade {p.to}</span>
-                                        <span className={styles.pDate}>{p.date} - {p.description}</span>
+                                        <span className={styles.pDate}>{p.date}</span>
                                     </div>
-                                    <strong>{p.amount} SEK</strong>
+                                    <strong>{Math.round(p.amount)} kr</strong>
                                 </div>
                             ))}
-                            {payments.length === 0 && (
-                                <div style={{ fontSize: '0.8rem', opacity: 0.5, textAlign: 'center', padding: '1rem' }}>
-                                    Inga betalningar registrerade för {year}.
-                                </div>
-                            )}
                         </div>
                     </section>
                 </aside>
@@ -196,75 +266,108 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                 <section className={`${styles.log} glass`}>
                     <div className={styles.logHeader}>
                         <div className={styles.viewTabs}>
-                            <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}>
-                                <List size={18} /> Loggbok
-                            </button>
-                            <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}>
-                                <TableIcon size={18} /> Huvudbok
-                            </button>
-                            <button onClick={() => router.push(`?mode=excel&year=${year}`)} className={`${styles.tab} ${mode === 'excel' ? styles.active : ''}`}>
-                                <TableIcon size={18} /> Snabbmatning
-                            </button>
+                            <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}><List size={18} /> Loggbok</button>
+                            <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}><TableIcon size={18} /> Huvudbok</button>
+                            <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}><PieChart size={18} /> Årsöversikt</button>
                         </div>
                         <div className={styles.actions}>
-                            {mode === 'ledger' && (
-                                <button onClick={exportToCSV} className={styles.exportBtn}>
-                                    <Download size={18} /> Exportera till Excel
-                                </button>
-                            )}
                             <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}><Plus size={18} /> Nytt utlägg</button>
                         </div>
                     </div>
 
                     <div className={styles.content}>
-                        {mode === 'excel' ? (
-                            <ExcelMode />
+                        {mode === 'overview' ? (
+                            <div className={styles.overviewWrapper}>
+                                <table className={styles.overviewTable}>
+                                    <thead>
+                                        <tr>
+                                            <th>Medlem</th>
+                                            <th>Utlägg</th>
+                                            <th>Andel (1/3)</th>
+                                            <th>Betalat till andra</th>
+                                            <th>Fått av andra</th>
+                                            <th>IB ({year})</th>
+                                            <th>Netto Balans</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {PARTNERS.map(name => {
+                                            const stat = accountingData.partnerStats[name];
+                                            const share = accountingData.totalYearExpenses / 3;
+                                            const net = stat.ib + (stat.currentPaid - share) + stat.currentSent - stat.currentReceived;
+                                            return (
+                                                <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
+                                                    <td><strong>{name}</strong></td>
+                                                    <td>{Math.round(stat.currentPaid)} kr</td>
+                                                    <td>-{Math.round(share)} kr</td>
+                                                    <td style={{ color: '#10b981' }}>+{Math.round(stat.currentSent)} kr</td>
+                                                    <td style={{ color: '#ef4444' }}>-{Math.round(stat.currentReceived)} kr</td>
+                                                    <td>{Math.round(stat.ib)} kr</td>
+                                                    <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>
+                                                        {Math.round(net)} kr
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                        <tr className={styles.totalRow}>
+                                            <td><strong>TOTALT</strong></td>
+                                            <td>{Math.round(accountingData.totalYearExpenses)} kr</td>
+                                            <td colSpan={5}></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <div className={styles.overviewHint}>
+                                    <p>Netto Balans är det slutgiltiga beloppet som medlemmen ska få tillbaka (+) eller betala (-) för att alla ska vara kvitterade.</p>
+                                </div>
+                            </div>
                         ) : mode === 'ledger' ? (
                             <div className={styles.ledgerWrapper}>
                                 <table className={styles.ledgerTable}>
                                     <thead>
                                         <tr>
-                                            <th>Datum</th>
-                                            <th>Beskrivning</th>
-                                            <th>Kategori</th>
-                                            <th>Betalare</th>
-                                            <th>Belopp</th>
+                                            <th onClick={() => toggleSort('date')}>Datum</th>
+                                            <th onClick={() => toggleSort('description')}>Beskrivning</th>
+                                            <th onClick={() => toggleSort('category')}>Kategori</th>
+                                            <th onClick={() => toggleSort('payerName')}>Betalare</th>
+                                            <th onClick={() => toggleSort('amount')} className={styles.amountHead}>Belopp</th>
+                                            <th></th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {expenses.map(exp => (
+                                        {year !== "2024" && (
+                                            <>
+                                                <tr className={styles.ibHeaderRow}>
+                                                    <td colSpan={6}><strong>Ingående balans från tidigare år</strong></td>
+                                                </tr>
+                                                {PARTNERS.map(name => (
+                                                    <tr key={name} className={styles.ibRow}>
+                                                        <td colSpan={4}>{name}</td>
+                                                        <td className={styles.amount}>{Math.round(accountingData.partnerStats[name].ib)} kr</td>
+                                                        <td></td>
+                                                    </tr>
+                                                ))}
+                                            </>
+                                        )}
+                                        {sortedExpenses.map(exp => (
                                             <tr key={exp.id}>
                                                 <td>{exp.date}</td>
                                                 <td>{exp.description}</td>
                                                 <td>{exp.category}</td>
                                                 <td>{exp.payerName}</td>
-                                                <td className={styles.amount}>{exp.amount} kr</td>
-                                            </tr>
-                                        ))}
-                                        {expenses.length === 0 && (
-                                            <tr>
-                                                <td colSpan={5} style={{ textAlign: 'center', padding: '2rem', color: 'rgba(255,255,255,0.4)' }}>
-                                                    Inga utlägg hittades för {year}.
+                                                <td className={styles.amount}>{Math.round(exp.amount)} kr</td>
+                                                <td className={styles.actionsCell}>
+                                                    {(exp.payerName === currentUser || currentUser.includes("Joel")) && (
+                                                        <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
+                                                    )}
                                                 </td>
                                             </tr>
-                                        )}
-                                        <tr className={styles.totalRow}>
-                                            <td colSpan={4}>TOTALT UTGIFTER</td>
-                                            <td className={styles.amount}>{expenses.reduce((sum, e) => sum + e.amount, 0)} kr</td>
-                                        </tr>
+                                        ))}
                                     </tbody>
                                 </table>
                             </div>
                         ) : (
                             <div className={styles.expenseList}>
-                                {expenses.map(exp => (
-                                    <ExpenseItem key={exp.id} expense={exp} />
-                                ))}
-                                {expenses.length === 0 && (
-                                    <div style={{ textAlign: 'center', padding: '3rem', color: 'rgba(255,255,255,0.4)', fontStyle: 'italic' }}>
-                                        Loggboken är tom för {year}.
-                                    </div>
-                                )}
+                                {sortedExpenses.map(exp => <ExpenseItem key={exp.id} expense={exp} />)}
                             </div>
                         )}
                     </div>
