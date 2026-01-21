@@ -128,10 +128,10 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
                     <tbody>
                         {rows.map((row) => (
                             <tr key={row.id}>
-                                <td><input type="date" value={row.date} onChange={(e) => updateRow(row.id, 'date', e.target.value)} /></td>
-                                <td><input type="text" value={row.desc} onChange={(e) => updateRow(row.id, 'desc', e.target.value)} placeholder="T.ex. Hamnavgift" /></td>
-                                <td><input type="number" value={row.amount} onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)} /></td>
-                                <td>
+                                <td data-label="Datum"><input type="date" value={row.date} onChange={(e) => updateRow(row.id, 'date', e.target.value)} /></td>
+                                <td data-label="Beskrivning"><input type="text" value={row.desc} onChange={(e) => updateRow(row.id, 'desc', e.target.value)} placeholder="T.ex. Hamnavgift" /></td>
+                                <td data-label="Belopp"><input type="number" value={row.amount} onChange={(e) => updateRow(row.id, 'amount', parseFloat(e.target.value) || 0)} /></td>
+                                <td data-label="Kategori">
                                     <select value={row.category} onChange={(e) => updateRow(row.id, 'category', e.target.value)}>
                                         <option value="Underhåll">Underhåll</option>
                                         <option value="Bränsle">Bränsle</option>
@@ -141,7 +141,7 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
                                         <option value="Övrigt">Övrigt</option>
                                     </select>
                                 </td>
-                                <td>
+                                <td data-label="Vem delar?">
                                     <div className={styles.splitToggle}>
                                         {PARTNERS.map(name => (
                                             <button
@@ -154,7 +154,7 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
                                         ))}
                                     </div>
                                 </td>
-                                <td>
+                                <td data-label="Kvitto">
                                     <div className={styles.uploadCell}>
                                         <input
                                             type="file"
@@ -169,7 +169,7 @@ export default function ExcelMode({ onSave }: { onSave?: () => void }) {
                                         </label>
                                     </div>
                                 </td>
-                                <td><button onClick={() => removeRow(row.id)} className={styles.deleteBtn}><Trash2 size={16} /></button></td>
+                                <td data-label=""><button onClick={() => removeRow(row.id)} className={styles.deleteBtn}><Trash2 size={16} /></button></td>
                             </tr>
                         ))}
                     </tbody>
