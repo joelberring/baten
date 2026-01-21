@@ -1,66 +1,57 @@
-import Image from "next/image";
+import Link from "next/link";
 import styles from "./page.module.css";
+import { Anchor, Calculator, Table, FileText, ChevronRight } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <Image
-          className={styles.logo}
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className={styles.intro}>
-          <h1>To get started, edit the page.tsx file.</h1>
-          <p>
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className={styles.main}>
+      <div className={styles.hero}>
+        <div className={styles.overlay}></div>
+        <nav className={styles.nav}>
+          <div className={styles.logo}>
+            <Anchor size={32} color="var(--brass)" />
+            <span>Viggen Utlägg</span>
+          </div>
+          <div className={styles.navLinks}>
+            <Link href="/login" className="btn-brass">Logga in</Link>
+          </div>
+        </nav>
+
+        <section className={styles.heroContent}>
+          <h1 className={styles.title}>Bokföring för din <span className={styles.highlight}>Albin Viggen</span></h1>
+          <p className={styles.subtitle}>
+            Dela på kostnaderna, inte på vänskapen. Enkel utläggshantering för båtägare.
           </p>
-        </div>
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className={styles.secondary}
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+
+          <div className={styles.features}>
+            <div className={`${styles.featureCard} glass`}>
+              <Calculator className={styles.icon} />
+              <h3>Settle Up</h3>
+              <p>Räkna ut vem som är skyldig vem med ett klick.</p>
+            </div>
+            <div className={`${styles.featureCard} glass`}>
+              <Table className={styles.icon} />
+              <h3>Excel-läge</h3>
+              <p>Full kontroll och bulkredigering direkt i tabellen.</p>
+            </div>
+            <div className={`${styles.featureCard} glass`}>
+              <FileText className={styles.icon} />
+              <h3>Årsbokslut</h3>
+              <p>Färdiga rapporter för hela säsongens ekonomi.</p>
+            </div>
+          </div>
+
+          <div className={styles.cta}>
+            <Link href="/login" className={styles.primaryBtn}>
+              Kom igång nu <ChevronRight size={20} />
+            </Link>
+          </div>
+        </section>
+      </div>
+
+      <footer className={styles.footer}>
+        <p>&copy; {new Date().getFullYear()} Viggen Utlägg. För gänget på böljan den blå.</p>
+      </footer>
+    </main>
   );
 }

@@ -1,0 +1,79 @@
+.excelContainer {
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: rgba(10, 25, 47, 0.5);
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+}
+
+.excelHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.excelActions {
+    display: flex;
+    gap: 1rem;
+}
+
+.saveBtn {
+    background: #10b981;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+}
+
+.tableWrapper {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    color: var(--ocean-white);
+}
+
+.table th {
+    text-align: left;
+    padding: 1rem;
+    border-bottom: 2px solid var(--glass-border);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    color: var(--brass);
+}
+
+.table td {
+    padding: 0.5rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.table input,
+.table select {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    color: white;
+    padding: 0.5rem;
+    border-radius: 4px;
+}
+
+.table input:focus {
+    outline: 1px solid var(--brass);
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.deleteBtn {
+    background: transparent;
+    border: none;
+    color: #ef4444;
+    cursor: pointer;
+    padding: 0.5rem;
+}

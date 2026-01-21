@@ -1,0 +1,49 @@
+.item {
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    border-left: 4px solid var(--brass);
+}
+
+.mainInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.desc h3 {
+    margin: 0;
+    font-size: 1.1rem;
+}
+
+.category {
+    font-size: 0.75rem;
+    color: var(--brass);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.amount {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--ocean-white);
+}
+
+.meta {
+    margin-top: 1rem;
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.metaLeft {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.metaLeft span,
+.comments {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}

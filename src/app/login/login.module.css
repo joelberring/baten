@@ -1,0 +1,63 @@
+.main {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--navy-deep);
+    padding: 1rem;
+}
+
+.loginCard {
+    width: 100%;
+    max-width: 450px;
+    padding: 3rem 2rem;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.header h1 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 1.75rem;
+    color: var(--ocean-white);
+}
+
+.header p {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.95rem;
+}
+
+.logo {
+    display: flex;
+    justify-content: center;
+}
+
+.googleBtn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1rem;
+    width: 100%;
+    padding: 1rem;
+    background: var(--ocean-white);
+    color: var(--navy-deep);
+    border: none;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.googleBtn:hover {
+    background: #e2e8f0;
+    transform: translateY(-2px);
+}
+
+.footer p {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.4);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
