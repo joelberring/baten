@@ -18,7 +18,8 @@ export const authOptions = {
         async signIn({ user }: any) {
             const allowedEmails = [
                 "joel@berring.se",
-                // Lägg till de andra här sen!
+                "avekob@gmail.com",
+                "samuelolundqvist@gmail.com",
             ];
 
             if (user.email && allowedEmails.includes(user.email.toLowerCase())) {

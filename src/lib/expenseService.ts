@@ -22,7 +22,20 @@ export interface Expense {
     createdAt: Timestamp;
 }
 
+export interface Payment {
+    id?: string;
+    from: string;
+    to: string;
+    amount: number;
+    date: string;
+    year: string;
+    description: string;
+    status: string;
+    createdAt: Timestamp;
+}
+
 const EXPENSES_COLLECTION = "expenses";
+const PAYMENTS_COLLECTION = "payments";
 
 export const saveExpense = async (expense: Omit<Expense, "id" | "createdAt" | "year">) => {
     const year = expense.date.split("-")[0];
@@ -54,4 +67,27 @@ export const deleteExpense = async (id: string) => {
 export const saveMultipleExpenses = async (expenses: Omit<Expense, "id" | "createdAt" | "year">[]) => {
     const promises = expenses.map(e => saveExpense(e));
     return Promise.all(promises);
+};
+
+export const savePayment = async (payment: Omit<Payment, "id" | "createdAt" | "year">) => {
+    const year = payment.date.split("-")[0];
+    return addDoc(collection(db, PAYMENTS_COLLECTION), {
+        ...payment,
+        year,
+        createdAt: Timestamp.now(),
+    });
+};
+
+export const getPayments = async (year: string) => {
+    const q = query(
+        collection(db, PAYMENTS_COLLECTION),
+        where("year", "==", year),
+        orderBy("date", "desc")
+    );
+
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+    })) as Payment[];
 };

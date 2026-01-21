@@ -7,7 +7,7 @@ import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
 import { useState, use, useEffect } from "react";
-import { getExpenses, Expense } from "@/lib/expenseService";
+import { getExpenses, getPayments, Expense, Payment } from "@/lib/expenseService";
 
 export default function DashboardClient({ searchParams }: { searchParams: Promise<{ mode?: string, year?: string }> }) {
     const { data: session, status } = useSession();
@@ -17,6 +17,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     const year = resolvedParams.year || "2026";
 
     const [expenses, setExpenses] = useState<Expense[]>([]);
+    const [payments, setPayments] = useState<Payment[]>([]);
     const [loading, setLoading] = useState(true);
     const [paying, setPaying] = useState(false);
     const [paid, setPaid] = useState(false);
@@ -25,10 +26,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         async function fetchData() {
             setLoading(true);
             try {
-                const data = await getExpenses(year);
-                setExpenses(data);
+                const [expData, payData] = await Promise.all([
+                    getExpenses(year),
+                    getPayments(year)
+                ]);
+                setExpenses(expData);
+                setPayments(payData);
             } catch (err) {
-                console.error("Error fetching expenses:", err);
+                console.error("Error fetching data:", err);
             } finally {
                 setLoading(false);
             }
@@ -42,20 +47,17 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         redirect("/login");
     }
 
-    if (status === "loading" || (loading && expenses.length === 0)) {
+    if (status === "loading" || (loading && expenses.length === 0 && year !== "2026")) {
         return <div className={styles.container} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>Laddar båtens loggbok...</div>;
     }
 
-    const years = ["2026", "2025"];
+    const years = ["2026", "2025", "2024"];
 
-    const mockPayments = [
-        { from: "Erik", to: "Anna", amount: 1200, status: "Slutförd", date: "2026-01-15" }
-    ];
-
-    const currentUser = session?.user?.name || "Joel";
+    const currentUser = session?.user?.name || "Joel Berring";
     let toReceive = 0;
     let toPay = 0;
 
+    // Räkna ut baserat på utlägg
     expenses.forEach(exp => {
         const share = exp.amount / 3;
         if (exp.payerName === currentUser) {
@@ -65,8 +67,17 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         }
     });
 
-    if (currentUser === "Erik") toPay -= 1200;
-    if (currentUser === "Anna") toReceive -= 1200;
+    // Justera för genomförda betalningar
+    payments.forEach(p => {
+        if (p.status === "Slutförd") {
+            if (p.from === currentUser) {
+                toPay -= p.amount;
+            }
+            if (p.to === currentUser) {
+                toReceive -= p.amount;
+            }
+        }
+    });
 
     const handlePay = () => {
         setPaying(true);
@@ -130,14 +141,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                 <TrendingUp color="#10b981" />
                                 <div>
                                     <p>Att få tillbaka</p>
-                                    <strong>{Math.round(toReceive)} SEK</strong>
+                                    <strong>{Math.max(0, Math.round(toReceive - toPay > 0 ? toReceive - toPay : 0))} SEK</strong>
                                 </div>
                             </div>
                             <div className={styles.statItem}>
                                 <TrendingDown color="#ef4444" />
                                 <div>
                                     <p>Att betala</p>
-                                    <strong>{Math.round(toPay)} SEK</strong>
+                                    <strong>{Math.max(0, Math.round(toPay - toReceive > 0 ? toPay - toReceive : 0))} SEK</strong>
                                 </div>
                             </div>
                         </div>
@@ -148,15 +159,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         <div className={styles.debtList}>
                             <div className={styles.debtItem}>
                                 <div className={styles.debtPair}>
-                                    <span>Anna</span> <ArrowRight size={14} /> <span>Joel</span>
+                                    <span>Skulder räknas ut automatiskt</span>
                                 </div>
-                                <strong>1,500 SEK</strong>
                                 <button
                                     className={`${styles.payBtn} ${paid ? styles.paid : ''}`}
                                     onClick={handlePay}
                                     disabled={paying}
                                 >
-                                    {paying ? "..." : paid ? "Betalat!" : "Betala"}
+                                    {paying ? "..." : paid ? "Betalat!" : "Avräkna"}
                                 </button>
                             </div>
                         </div>
@@ -165,15 +175,20 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                     <section className={`${styles.payments} glass`}>
                         <h2>Genomförda Betalningar</h2>
                         <div className={styles.paymentList}>
-                            {mockPayments.map((p, idx) => (
+                            {payments.map((p, idx) => (
                                 <div key={idx} className={styles.paymentItem}>
                                     <div className={styles.pInfo}>
                                         <span>{p.from} betalade {p.to}</span>
-                                        <span className={styles.pDate}>{p.date}</span>
+                                        <span className={styles.pDate}>{p.date} - {p.description}</span>
                                     </div>
                                     <strong>{p.amount} SEK</strong>
                                 </div>
                             ))}
+                            {payments.length === 0 && (
+                                <div style={{ fontSize: '0.8rem', opacity: 0.5, textAlign: 'center', padding: '1rem' }}>
+                                    Inga betalningar registrerade för {year}.
+                                </div>
+                            )}
                         </div>
                     </section>
                 </aside>
