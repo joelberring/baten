@@ -244,9 +244,12 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                             {Object.entries(accountingData.categoryStats).map(([cat, val], idx) => (
                                 <div key={cat} className={styles.legendItem}>
                                     <div className={styles.legendColor} style={{ background: `hsl(${idx * 45}, 60%, 50%)` }}></div>
-                                    <span>{cat}</span><strong>{Math.round((val / accountingData.totalYearExpenses) * 100)}%</strong>
+                                    <span>{cat}</span><strong>{accountingData.totalYearExpenses > 0 ? Math.round((val / accountingData.totalYearExpenses) * 100) : 0}%</strong>
                                 </div>
                             ))}
+                            {Object.keys(accountingData.categoryStats).length === 0 && (
+                                <p className={styles.noDataText}>Inga utlägg i år</p>
+                            )}
                         </div>
                     </section>
 
@@ -365,7 +368,13 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                             </div>
                         ) : (
                             <div className={styles.expenseList}>
-                                {sortedExpenses.map(exp => (
+                                {sortedExpenses.length === 0 ? (
+                                    <div className={styles.emptyState}>
+                                        <ImageIcon size={48} className={styles.emptyIcon} />
+                                        <p>Här var det tomt! Inga utlägg hittades för {year}.</p>
+                                        <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}>Mata in första utlägget</button>
+                                    </div>
+                                ) : sortedExpenses.map(exp => (
                                     <ExpenseItem
                                         key={exp.id}
                                         expense={exp}

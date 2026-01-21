@@ -244,6 +244,36 @@
     color: var(--navy-deep);
 }
 
+.noDataText {
+    grid-column: span 2;
+    text-align: center;
+    padding: 1rem;
+    color: rgba(255, 255, 255, 0.3);
+    font-size: 0.8rem;
+    font-style: italic;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    text-align: center;
+    gap: 1.5rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.emptyIcon {
+    opacity: 0.1;
+    color: var(--brass);
+}
+
+.emptyState p {
+    font-size: 0.9rem;
+    max-width: 300px;
+}
+
 .searchBar {
     flex: 1;
     position: relative;
