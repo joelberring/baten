@@ -53,11 +53,18 @@ export const getExpenses = async (year: string) => {
         ? query(collection(db, EXPENSES_COLLECTION), orderBy("date", "desc"))
         : query(collection(db, EXPENSES_COLLECTION), where("year", "==", year), orderBy("date", "desc"));
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    })) as Expense[];
+    try {
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Expense[];
+        console.log(`Fetched ${data.length} expenses for year: ${year}`);
+        return data;
+    } catch (error) {
+        console.error("Error in getExpenses:", error);
+        throw error;
+    }
 };
 
 export const deleteExpense = async (id: string) => {
@@ -83,11 +90,18 @@ export const getPayments = async (year: string) => {
         ? query(collection(db, PAYMENTS_COLLECTION), orderBy("date", "desc"))
         : query(collection(db, PAYMENTS_COLLECTION), where("year", "==", year), orderBy("date", "desc"));
 
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-    })) as Payment[];
+    try {
+        const querySnapshot = await getDocs(q);
+        const data = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        })) as Payment[];
+        console.log(`Fetched ${data.length} payments for year: ${year}`);
+        return data;
+    } catch (error) {
+        console.error("Error in getPayments:", error);
+        throw error;
+    }
 };
 
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
