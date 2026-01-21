@@ -1,8 +1,8 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X, Smartphone, Image as ImageIcon, ExternalLink } from "lucide-react";
+import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X, Smartphone, Image as ImageIcon, ExternalLink, LogOut } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
@@ -212,7 +212,12 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         </button>
                     ))}
                 </nav>
-                <div className={styles.user}><span>{session?.user?.name?.split(' ')[0]}</span></div>
+                <div className={styles.user}>
+                    <span>{session?.user?.name?.split(' ')[0]}</span>
+                    <button onClick={() => signOut({ callbackUrl: '/login' })} className={styles.logoutBtn} aria-label="Logga ut">
+                        <LogOut size={18} />
+                    </button>
+                </div>
             </header>
 
             <div className={styles.grid}>

@@ -57,9 +57,29 @@
 }
 
 .user {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
     font-size: 0.8rem;
     color: var(--text-secondary);
     font-weight: 600;
+}
+
+.logoutBtn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 0.4rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.logoutBtn:hover {
+    background: #fee2e2;
+    color: #ef4444;
 }
 
 /* Main Layout */
