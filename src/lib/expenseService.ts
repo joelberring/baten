@@ -20,6 +20,7 @@ export interface Expense {
     date: string;
     year: string;
     participants?: string[];
+    receiptUrl?: string;
     createdAt: Timestamp;
 }
 
@@ -48,9 +49,9 @@ export const saveExpense = async (expense: Omit<Expense, "id" | "createdAt" | "y
 };
 
 export const getExpenses = async (year: string) => {
-    const q = query(
-        collection(db, EXPENSES_COLLECTION)
-    );
+    const q = year === "all"
+        ? query(collection(db, EXPENSES_COLLECTION), orderBy("date", "desc"))
+        : query(collection(db, EXPENSES_COLLECTION), where("year", "==", year), orderBy("date", "desc"));
 
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
@@ -78,13 +79,22 @@ export const savePayment = async (payment: Omit<Payment, "id" | "createdAt" | "y
 };
 
 export const getPayments = async (year: string) => {
-    const q = query(
-        collection(db, PAYMENTS_COLLECTION)
-    );
+    const q = year === "all"
+        ? query(collection(db, PAYMENTS_COLLECTION), orderBy("date", "desc"))
+        : query(collection(db, PAYMENTS_COLLECTION), where("year", "==", year), orderBy("date", "desc"));
 
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
     })) as Payment[];
+};
+
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { storage } from "./firebase";
+
+export const uploadReceipt = async (file: File) => {
+    const storageRef = ref(storage, `receipts/${Date.now()}_${file.name}`);
+    await uploadBytes(storageRef, file);
+    return getDownloadURL(storageRef);
 };

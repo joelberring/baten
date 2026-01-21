@@ -41,6 +41,27 @@
     gap: 1.5rem;
 }
 
+.metaRight {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.deleteBtn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.2);
+    cursor: pointer;
+    padding: 0.25rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s;
+}
+
+.deleteBtn:hover {
+    color: #ef4444;
+}
+
 .metaLeft span,
 .comments {
     display: flex;

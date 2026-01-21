@@ -1,5 +1,5 @@
 .excelContainer {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(0, 0, 0, 0.2);
     border-radius: 12px;
     padding: 1.5rem;
     border: 1px solid var(--glass-border);
@@ -13,16 +13,29 @@
 }
 
 .excelHeader h2 {
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: var(--brass);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
 }
 
 .excelActions {
     display: flex;
+    align-items: center;
     gap: 1rem;
 }
 
-.tableWrapper {
+.totalBadge {
+    padding: 0.4rem 0.8rem;
+    background: rgba(196, 160, 82, 0.1);
+    border: 1px solid var(--brass);
+    color: var(--brass);
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 800;
+}
+
+.tableContainer {
     overflow-x: auto;
 }
 
@@ -34,9 +47,9 @@
 .table th {
     text-align: left;
     padding: 0.75rem;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.4);
     text-transform: uppercase;
-    color: rgba(255, 255, 255, 0.5);
 }
 
 .table td {
@@ -47,7 +60,7 @@
 .table input,
 .table select {
     width: 100%;
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(255, 255, 255, 0.05);
     border: 1px solid var(--glass-border);
     color: white;
     padding: 0.5rem;
@@ -58,7 +71,7 @@
 
 .splitToggle {
     display: flex;
-    gap: 0.25rem;
+    gap: 4px;
 }
 
 .splitToggle button {
@@ -68,8 +81,8 @@
     border: 1px solid var(--glass-border);
     background: transparent;
     color: rgba(255, 255, 255, 0.3);
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: 0.65rem;
+    font-weight: 800;
     cursor: pointer;
     transition: all 0.2s;
 }
@@ -80,50 +93,49 @@
     border-color: var(--brass) !important;
 }
 
+.uploadCell {
+    display: flex;
+    justify-content: center;
+}
+
+.uploadBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.uploadBtn:hover {
+    border-color: var(--brass);
+    color: var(--brass);
+}
+
 .saveBtn {
     background: #10b981;
     color: white;
     border: none;
-    padding: 0.6rem 1.2rem;
+    padding: 0.5rem 1.2rem;
     border-radius: 6px;
-    font-weight: 700;
+    font-weight: 800;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 0.5rem;
 }
 
-.saveBtn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
 .deleteBtn {
     background: transparent;
     border: none;
-    color: rgba(255, 255, 255, 0.2);
+    color: rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    padding: 0.4rem;
-    transition: all 0.2s;
 }
 
 .deleteBtn:hover {
     color: #ef4444;
-}
-
-.swishBtnSmall {
-    background: #bc2b37;
-    color: white;
-    border: none;
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-size: 0.7rem;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.participantsCell {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
-    text-align: center;
 }

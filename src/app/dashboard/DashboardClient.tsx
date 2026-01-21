@@ -2,7 +2,7 @@
 
 import { useSession } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X, Smartphone } from "lucide-react";
+import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X, Smartphone, Image as ImageIcon, ExternalLink } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
@@ -13,7 +13,7 @@ type SortField = 'date' | 'description' | 'category' | 'payerName' | 'amount';
 type SortOrder = 'asc' | 'desc';
 type Mode = "list" | "excel" | "ledger" | "overview";
 
-const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"];
+const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"]; // Matchar seed-data stavning
 
 export default function DashboardClient({ searchParams }: { searchParams: Promise<{ mode?: string, year?: string }> }) {
     const { data: session, status } = useSession();
@@ -30,28 +30,28 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     const [showSettlement, setShowSettlement] = useState(false);
     const [isSavingPayment, setIsSavingPayment] = useState(false);
 
-    useEffect(() => {
-        async function fetchData() {
-            setLoading(true);
-            try {
-                const [expData, payData] = await Promise.all([
-                    getExpenses("all"),
-                    getPayments("all")
-                ]);
-                setAllExpenses(expData);
-                setAllPayments(payData);
-            } catch (err) {
-                console.error("Error fetching data:", err);
-            } finally {
-                setLoading(false);
-            }
+    const fetchData = async () => {
+        setLoading(true);
+        try {
+            const [expData, payData] = await Promise.all([
+                getExpenses("all"),
+                getPayments("all")
+            ]);
+            setAllExpenses(expData);
+            setAllPayments(payData);
+        } catch (err) {
+            console.error("Error fetching data:", err);
+        } finally {
+            setLoading(false);
         }
+    };
+
+    useEffect(() => {
         if (status === "authenticated") fetchData();
     }, [status]);
 
     const currentUser = session?.user?.name || "Joel Berring";
 
-    // Re-calculate accounting logic with participants support
     const accountingData = useMemo(() => {
         const selectedYearInt = parseInt(year);
         const partnerStats = PARTNERS.reduce((acc, name) => {
@@ -76,13 +76,12 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                     else if (isParticipant) partnerStats[p].ib -= share;
                 });
             } else if (y === selectedYearInt) {
-                partnerStats[exp.payerName].currentPaid += exp.amount;
+                if (partnerStats[exp.payerName]) partnerStats[exp.payerName].currentPaid += exp.amount;
                 totalYearExpenses += exp.amount;
                 categoryStats[exp.category] = (categoryStats[exp.category] || 0) + exp.amount;
 
-                // Track debts for current year
                 participants.forEach(p => {
-                    if (p !== exp.payerName) {
+                    if (partnerStats[p]) {
                         partnerStats[p].currentDebt += share;
                     }
                 });
@@ -127,7 +126,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         return sorted;
     }, [filteredExpenses, sortConfig]);
 
-    const stat = accountingData.partnerStats[currentUser];
+    const stat = accountingData.partnerStats[currentUser] || { ib: 0, currentPaid: 0, currentDebt: 0, currentSent: 0, currentReceived: 0 };
     const userBalance = stat.ib + stat.currentPaid - stat.currentDebt + stat.currentSent - stat.currentReceived;
 
     if (status === "unauthenticated") redirect("/login");
@@ -176,74 +175,58 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         }
     };
 
-    const generateSwishLink = (to: string, amount: number) => {
-        // Mock phone numbers since we don't have a settings page yet
-        const phones: Record<string, string> = {
-            "Joel Berring": "0701234567",
-            "Avenir Kobetski": "0709876543",
-            "Samuel Lundqvist": "0705554433"
-        };
-        const phone = phones[to] || "";
-        const msg = `Viggen Utlägg: Betalning för ${year}`;
-        alert(`Öppnar Swish för att betala ${amount} kr till ${to} (${phone})...\n\n(I en riktig PWA skulle detta öppna Swish-appen direkt)`);
-        // window.location.href = `swish://payment?data=${JSON.stringify({payee: phone, amount: amount, message: msg})}`;
-    };
-
     return (
         <main className={styles.container}>
             <header className={styles.header}>
-                <div className={styles.logo} onClick={() => router.push('/dashboard')}>
-                    <Anchor size={24} color="var(--brass)" />
-                    <span>Viggen Utlägg</span>
+                <div className={styles.heroOverlay}>
+                    <img src="/assets/boat/boat_profile.jpg" alt="Viggen" className={styles.heroImage} />
                 </div>
-                <nav className={styles.yearNav}>
-                    {years.map(y => (
-                        <button key={y} onClick={() => router.push(`?year=${y}&mode=${mode}`)} className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}>
-                            {y}
-                        </button>
-                    ))}
-                </nav>
-                <div className={styles.user}><span>Välkommen, {session?.user?.name}</span></div>
+                <div className={styles.headerContent}>
+                    <div className={styles.logo} onClick={() => router.push('/dashboard')}>
+                        <Anchor size={28} color="var(--brass)" />
+                        <span>Viggen Utlägg</span>
+                    </div>
+                    <nav className={styles.yearNav}>
+                        {years.map(y => (
+                            <button key={y} onClick={() => router.push(`?year=${y}&mode=${mode}`)} className={`${styles.yearLink} ${year === y ? styles.activeYear : ''}`}>
+                                {y}
+                            </button>
+                        ))}
+                    </nav>
+                    <div className={styles.user}><span>{session?.user?.name}</span></div>
+                </div>
             </header>
 
             <div className={styles.grid}>
                 <aside className={styles.sidebar}>
                     <section className={`${styles.stats} glass`}>
-                        <h2>Status - {year}</h2>
+                        <h2>Status {year}</h2>
                         <div className={styles.statRow}>
                             <div className={styles.statItem}>
                                 <TrendingUp color="#10b981" />
-                                <div><p>Att få tillbaka</p><strong>{Math.max(0, Math.round(userBalance > 0 ? userBalance : 0))} SEK</strong></div>
+                                <div><p>Att få tillbaka</p><strong>{Math.max(0, Math.round(userBalance > 0 ? userBalance : 0))} kr</strong></div>
                             </div>
                             <div className={styles.statItem}>
                                 <TrendingDown color="#ef4444" />
-                                <div><p>Att betala</p><strong>{Math.max(0, Math.round(userBalance < 0 ? -userBalance : 0))} SEK</strong></div>
+                                <div><p>Att betala</p><strong>{Math.max(0, Math.round(userBalance < 0 ? -userBalance : 0))} kr</strong></div>
                             </div>
-                        </div>
-                    </section>
-
-                    <section className={`${styles.chartSection} glass`}>
-                        <h2>Spendering per kategori</h2>
-                        <div className={styles.chartLegend}>
-                            {Object.entries(accountingData.categoryStats).map(([cat, val], idx) => (
-                                <div key={cat} className={styles.legendItem}>
-                                    <div className={styles.legendColor} style={{ background: `hsl(${idx * 45}, 60%, 50%)` }}></div>
-                                    <span>{cat}</span><strong>{Math.round((val / accountingData.totalYearExpenses) * 100)}%</strong>
-                                </div>
-                            ))}
                         </div>
                     </section>
 
                     <section className={`${styles.settleSection} glass`}>
-                        <h2>Registrera Swish</h2>
+                        <div className={styles.sectionHeader}>
+                            <h2>Registrera Betalning</h2>
+                            <Smartphone size={16} color="var(--brass)" />
+                        </div>
+                        <p className={styles.hintText}>Har du swishat någon? Registrera det här för att nollställa din skuld.</p>
                         {!showSettlement ? (
                             <button className={styles.avraknaBtn} onClick={() => setShowSettlement(true)}>
-                                <Smartphone size={16} /> Markera som betald
+                                <Plus size={16} /> Lägg in betalning
                             </button>
                         ) : (
                             <form onSubmit={handleSettleUp} className={styles.settleForm}>
                                 <select name="to" required defaultValue="">
-                                    <option value="" disabled>Till vem?</option>
+                                    <option value="" disabled>Vem betalade du?</option>
                                     {PARTNERS.filter(n => n !== currentUser).map(n => <option key={n} value={n}>{n}</option>)}
                                 </select>
                                 <input type="number" name="amount" placeholder="Belopp (kr)" required />
@@ -254,19 +237,34 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                             </form>
                         )}
                     </section>
+
+                    <section className={`${styles.chartSection} glass`}>
+                        <h2>Utgifter per kategori</h2>
+                        <div className={styles.chartLegend}>
+                            {Object.entries(accountingData.categoryStats).map(([cat, val], idx) => (
+                                <div key={cat} className={styles.legendItem}>
+                                    <div className={styles.legendColor} style={{ background: `hsl(${idx * 45}, 60%, 50%)` }}></div>
+                                    <span>{cat}</span><strong>{Math.round((val / accountingData.totalYearExpenses) * 100)}%</strong>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+
+                    <div className={styles.boatMood}>
+                        <img src="/assets/boat/crew_deck.jpg" alt="Besättning" className={styles.moodImage} />
+                    </div>
                 </aside>
 
                 <section className={`${styles.log} glass`}>
                     <div className={styles.logHeader}>
                         <div className={styles.viewTabs}>
-                            <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}><List size={18} /> Loggbok</button>
-                            <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}><TableIcon size={18} /> Huvudbok</button>
-                            <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}><PieChart size={18} /> Årsöversikt</button>
+                            <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}>Loggbok</button>
+                            <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}>Huvudbok</button>
+                            <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}>Årsöversikt</button>
                         </div>
                         <div className={styles.searchBar}>
-                            <Search size={18} className={styles.searchIcon} />
+                            <Search size={16} className={styles.searchIcon} />
                             <input type="text" placeholder="Sök..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
-                            {searchQuery && <X size={14} className={styles.clearSearch} onClick={() => setSearchQuery("")} />}
                         </div>
                         <div className={styles.actions}>
                             <button className="btn-brass" onClick={() => router.push(`?mode=excel&year=${year}`)}><Plus size={18} /> Nytt utlägg</button>
@@ -274,19 +272,21 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                     </div>
 
                     <div className={styles.content}>
-                        {mode === 'excel' ? <ExcelMode /> : mode === 'overview' ? (
+                        {mode === 'excel' ? <ExcelMode onSave={() => {
+                            fetchData();
+                            router.push(`?mode=ledger&year=${year}`);
+                        }} /> : mode === 'overview' ? (
                             <div className={styles.overviewWrapper}>
                                 <table className={styles.overviewTable}>
                                     <thead>
                                         <tr>
                                             <th>Medlem</th>
                                             <th>Utlägg</th>
-                                            <th>Skuld (Andel)</th>
-                                            <th>Betalat till andra</th>
-                                            <th>Fått av andra</th>
+                                            <th>Skuld</th>
+                                            <th>Skuldreglering</th>
                                             <th>IB ({year})</th>
                                             <th>Netto Balans</th>
-                                            <th>Swisha</th>
+                                            <th>Åtgärd</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -298,13 +298,24 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                                     <td><strong>{name}</strong></td>
                                                     <td>{Math.round(s.currentPaid)} kr</td>
                                                     <td>-{Math.round(s.currentDebt)} kr</td>
-                                                    <td style={{ color: '#10b981' }}>+{Math.round(s.currentSent)} kr</td>
-                                                    <td style={{ color: '#ef4444' }}>-{Math.round(s.currentReceived)} kr</td>
+                                                    <td style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
+                                                        {Math.round(s.currentSent - s.currentReceived)} kr
+                                                    </td>
                                                     <td>{Math.round(s.ib)} kr</td>
                                                     <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>{Math.round(net)} kr</td>
                                                     <td>
                                                         {net < 0 && name === currentUser && (
-                                                            <button onClick={() => generateSwishLink("Samuel Lundqvist", Math.abs(Math.round(net)))} className={styles.swishBtnSmall}>Swisha</button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const amount = Math.abs(Math.round(net));
+                                                                    // För en riktig app skulle vi hämta motpartens telefonnummer här.
+                                                                    // Swish djuplänk format: swish://payment?data={...}
+                                                                    alert(`Öppnar Swish för att betala ${amount} kr. (Här skulle en djuplänk triggas om telefonnummer fanns registrerat)`);
+                                                                }}
+                                                                className={styles.swishBtnSmall}
+                                                            >
+                                                                Swisha
+                                                            </button>
                                                         )}
                                                     </td>
                                                 </tr>
@@ -324,6 +335,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                             <th onClick={() => toggleSort('payerName')}>Betalare</th>
                                             <th>Split</th>
                                             <th onClick={() => toggleSort('amount')} className={styles.amountHead}>Belopp</th>
+                                            <th>Bilaga</th>
                                             <th></th>
                                         </tr>
                                     </thead>
@@ -334,14 +346,17 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                                 <td>{exp.description}</td>
                                                 <td>{exp.category}</td>
                                                 <td>{exp.payerName}</td>
-                                                <td className={styles.participantsCell}>
-                                                    {exp.participants ? `${exp.participants.length}/3` : "3/3"}
-                                                </td>
+                                                <td className={styles.participantsCell}>{exp.participants ? `${exp.participants.length}/3` : "3/3"}</td>
                                                 <td className={styles.amount}>{Math.round(exp.amount)} kr</td>
+                                                <td className={styles.receiptCell}>
+                                                    {exp.receiptUrl ? (
+                                                        <a href={exp.receiptUrl} target="_blank" rel="noopener noreferrer" className={styles.receiptLink}>
+                                                            <ImageIcon size={16} />
+                                                        </a>
+                                                    ) : <span className={styles.noReceipt}>-</span>}
+                                                </td>
                                                 <td className={styles.actionsCell}>
-                                                    {(exp.payerName === currentUser || currentUser.includes("Joel")) && (
-                                                        <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
-                                                    )}
+                                                    <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
                                                 </td>
                                             </tr>
                                         ))}
@@ -350,7 +365,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                             </div>
                         ) : (
                             <div className={styles.expenseList}>
-                                {sortedExpenses.map(exp => <ExpenseItem key={exp.id} expense={exp} />)}
+                                {sortedExpenses.map(exp => (
+                                    <ExpenseItem
+                                        key={exp.id}
+                                        expense={exp}
+                                        onDelete={handleDelete}
+                                        currentUserName={currentUser}
+                                    />
+                                ))}
                             </div>
                         )}
                     </div>

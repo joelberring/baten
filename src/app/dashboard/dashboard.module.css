@@ -4,50 +4,84 @@
     color: var(--ocean-white);
 }
 
+/* Header with Boat Hero */
 .header {
+    height: 120px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    padding: 0 2rem;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.heroOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+}
+
+.heroImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 25%;
+    opacity: 0.3;
+    filter: saturate(0.5) contrast(1.2);
+}
+
+.headerContent {
+    position: relative;
+    z-index: 1;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1rem 2rem;
-    background: rgba(10, 25, 47, 0.8);
-    border-bottom: 1px solid var(--glass-border);
-    backdrop-filter: blur(5px);
+    width: 100%;
 }
 
 .logo {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    font-size: 1.25rem;
+    gap: 0.75rem;
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
     cursor: pointer;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
 }
 
 .yearNav {
     display: flex;
-    gap: 1.5rem;
+    gap: 1rem;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 0.4rem;
+    border-radius: 30px;
+    backdrop-filter: blur(5px);
 }
 
 .yearNav button {
     background: transparent;
     border: none;
-    font-family: inherit;
-    font-size: 0.9rem;
     color: rgba(255, 255, 255, 0.5);
-    font-weight: 600;
-    transition: all 0.2s;
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
     cursor: pointer;
-    padding: 0.25rem 0.5rem;
+    font-size: 0.85rem;
+    transition: all 0.2s;
 }
 
-.yearNav button:hover,
-.yearNav button.activeYear {
-    color: var(--brass);
+.activeYear {
+    background: var(--brass) !important;
+    color: var(--navy-deep) !important;
 }
 
 .grid {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: 350px 1fr;
     gap: 2rem;
     padding: 2rem;
     max-width: 1400px;
@@ -60,104 +94,69 @@
     gap: 2rem;
 }
 
+.boatMood {
+    border-radius: 12px;
+    overflow: hidden;
+    height: 200px;
+    border: 1px solid var(--glass-border);
+}
+
+.moodImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6;
+    transition: opacity 0.3s;
+}
+
+.boatMood:hover .moodImage {
+    opacity: 0.9;
+}
+
 .stats,
-.payments,
 .settleSection,
 .chartSection {
     padding: 1.5rem;
-    border-radius: 12px;
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
 }
 
 .stats h2,
-.payments h2,
 .settleSection h2,
 .chartSection h2 {
     font-size: 0.8rem;
-    margin-bottom: 1.5rem;
     text-transform: uppercase;
-    letter-spacing: 0.08em;
+    letter-spacing: 0.1em;
     color: var(--brass);
+    margin: 0;
 }
 
-/* Category Chart Styling */
-.chartLegend {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
+.hintText {
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: rgba(255, 255, 255, 0.5);
+    margin-bottom: 1.5rem;
 }
 
-.legendItem {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-}
-
-.legendColor {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-}
-
-.legendItem span {
-    flex: 1;
-    color: rgba(255, 255, 255, 0.7);
-}
-
-.legendItem strong {
-    color: var(--brass);
-}
-
-.noData {
-    font-size: 0.8rem;
-    opacity: 0.5;
-    font-style: italic;
-}
-
-/* Search Bar */
-.searchBar {
-    flex: 1;
-    max-width: 400px;
-    margin: 0 2rem;
-    position: relative;
-    display: flex;
-    align-items: center;
-}
-
-.searchIcon {
-    position: absolute;
-    left: 1rem;
-    color: rgba(255, 255, 255, 0.3);
-}
-
-.searchBar input {
+.avraknaBtn {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--glass-border);
-    border-radius: 20px;
-    padding: 0.6rem 1rem 0.6rem 3rem;
-    color: white;
-    font-family: inherit;
-    font-size: 0.85rem;
-    transition: all 0.2s;
-}
-
-.searchBar input:focus {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: var(--brass);
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(184, 134, 11, 0.1);
-}
-
-.clearSearch {
-    position: absolute;
-    right: 1rem;
-    color: rgba(255, 255, 255, 0.3);
+    background: var(--brass);
+    color: var(--navy-deep);
+    border: none;
+    border-radius: 8px;
+    padding: 0.75rem;
+    font-weight: 800;
     cursor: pointer;
-}
-
-.clearSearch:hover {
-    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
 }
 
 .statRow {
@@ -173,33 +172,162 @@
 }
 
 .statItem p {
-    font-size: 0.8rem;
+    font-size: 0.75rem;
+    margin: 0;
     color: rgba(255, 255, 255, 0.6);
 }
 
 .statItem strong {
-    font-size: 1.5rem;
+    font-size: 1.75rem;
+    line-height: 1;
 }
 
-.avraknaBtn {
-    width: 100%;
-    background: var(--brass);
-    color: var(--navy-deep);
-    border: none;
-    border-radius: 8px;
-    padding: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
+/* Charts */
+.chartLegend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.legendItem {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-    transition: all 0.2s;
+    gap: 0.75rem;
+    font-size: 0.8rem;
 }
 
-.avraknaBtn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(184, 134, 11, 0.3);
+.legendColor {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.legendItem span {
+    flex: 1;
+}
+
+/* Log / Tables */
+.log {
+    padding: 1.5rem;
+}
+
+.logHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    gap: 1rem;
+}
+
+.viewTabs {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 0.25rem;
+    border-radius: 10px;
+}
+
+.tab {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.4);
+    font-weight: 700;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+.tab.active {
+    background: var(--brass);
+    color: var(--navy-deep);
+}
+
+.searchBar {
+    flex: 1;
+    position: relative;
+    max-width: 300px;
+}
+
+.searchIcon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    opacity: 0.3;
+}
+
+.searchBar input {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--glass-border);
+    padding: 0.5rem 1rem 0.5rem 2.5rem;
+    border-radius: 20px;
+    color: white;
+    font-family: inherit;
+    font-size: 0.8rem;
+}
+
+.ledgerWrapper {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+}
+
+.ledgerTable {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.ledgerTable th {
+    background: rgba(184, 134, 11, 0.05);
+    color: var(--brass);
+    text-align: left;
+    padding: 1rem;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+}
+
+.ledgerTable td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--glass-border);
+    font-size: 0.85rem;
+}
+
+.amount {
+    font-weight: 700;
+    text-align: right;
+}
+
+.receiptCell {
+    text-align: center;
+}
+
+.receiptLink {
+    color: var(--brass);
+    opacity: 0.6;
+    transition: opacity 0.2s;
+}
+
+.receiptLink:hover {
+    opacity: 1;
+}
+
+.noReceipt {
+    opacity: 0.2;
+}
+
+.deleteMini {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+}
+
+.deleteMini:hover {
+    color: #ef4444;
 }
 
 .settleForm {
@@ -210,7 +338,7 @@
 
 .settleForm select,
 .settleForm input {
-    background: rgba(0, 0, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
     border: 1px solid var(--glass-border);
     color: white;
     padding: 0.6rem;
@@ -227,7 +355,7 @@
     flex: 1;
     padding: 0.5rem;
     border-radius: 6px;
-    font-weight: 600;
+    font-weight: 700;
     cursor: pointer;
     border: none;
 }
@@ -237,163 +365,29 @@
     color: white !important;
 }
 
-.paymentItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 0;
-    border-bottom: 1px solid var(--glass-border);
-}
-
-.pInfo {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.pDate {
-    font-size: 0.75rem;
-    color: rgba(255, 255, 255, 0.4);
-}
-
-.log {
-    padding: 1.5rem;
-}
-
-.logHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-}
-
-.viewTabs {
-    display: flex;
-    background: rgba(255, 255, 255, 0.05);
-    padding: 0.25rem;
-    border-radius: 8px;
-    gap: 0.25rem;
-}
-
-.viewTabs button {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 1rem;
+.swishBtnSmall {
+    background: #bc2b37;
+    color: white;
     border: none;
-    background: transparent;
-    color: rgba(255, 255, 255, 0.6);
-    cursor: pointer;
-    border-radius: 6px;
-    font-weight: 600;
-    transition: all 0.2s;
-    font-family: inherit;
-}
-
-.viewTabs button.active {
-    background: var(--brass);
-    color: var(--navy-deep);
-}
-
-.actions {
-    display: flex;
-    gap: 1rem;
-}
-
-.overviewWrapper,
-.ledgerWrapper {
-    background: rgba(255, 255, 255, 0.03);
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid var(--glass-border);
-}
-
-.overviewTable,
-.ledgerTable {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.85rem;
-}
-
-.overviewTable th,
-.ledgerTable th {
-    background: rgba(184, 134, 11, 0.1);
-    color: var(--brass);
-    text-align: left;
-    padding: 1rem;
-    font-weight: 700;
-    text-transform: uppercase;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
     font-size: 0.7rem;
-    letter-spacing: 0.05em;
-}
-
-.overviewTable td,
-.ledgerTable td {
-    padding: 1rem;
-    border-bottom: 1px solid var(--glass-border);
-}
-
-.currentPartnerRow {
-    background: rgba(184, 134, 11, 0.05);
-}
-
-.ibHeaderRow {
-    background: rgba(184, 134, 11, 0.05);
-    color: var(--brass);
-}
-
-.ibRow td {
-    color: rgba(255, 255, 255, 0.3);
-    font-style: italic;
-    padding-top: 0.4rem;
-    padding-bottom: 0.4rem;
-}
-
-.amount {
-    font-weight: 700;
-    text-align: right;
-}
-
-.amountHead {
-    text-align: right !important;
-}
-
-.totalRow {
-    background: rgba(255, 255, 255, 0.05);
     font-weight: 800;
-    color: var(--brass);
-}
-
-.deleteMini {
-    background: transparent;
-    border: none;
-    color: rgba(255, 255, 255, 0.1);
     cursor: pointer;
-    padding: 0.25rem;
-    transition: all 0.2s;
 }
 
-.deleteMini:hover {
-    color: #ef4444;
-}
-
-.actionsCell {
-    width: 40px;
-    text-align: center;
-}
-
-@media (max-width: 1100px) {
+@media (max-width: 1000px) {
     .grid {
         grid-template-columns: 1fr;
     }
 
-    .searchBar {
-        margin: 1rem 0;
-        max-width: none;
-        order: 3;
+    .header {
+        height: auto;
+        padding: 1rem;
     }
 
-    .logHeader {
-        flex-wrap: wrap;
+    .headerContent {
+        flex-direction: column;
+        gap: 1rem;
     }
 }

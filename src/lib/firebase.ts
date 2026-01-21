@@ -16,7 +16,10 @@ const firebaseConfig = {
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
+import { getStorage } from "firebase/storage";
+const storage = getStorage(app);
+
 // Analytics (only on client side)
 const analytics = typeof window !== "undefined" && isSupported().then(yes => yes ? getAnalytics(app) : null);
 
-export { app, db, analytics };
+export { app, db, storage, analytics };
