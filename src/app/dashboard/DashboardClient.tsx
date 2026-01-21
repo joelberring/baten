@@ -7,11 +7,11 @@ import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
 import { useState, use, useEffect, useMemo } from "react";
-import { getExpenses, getPayments, Expense, Payment, savePayment, deleteExpense } from "@/lib/expenseService";
+import { getExpenses, getPayments, Expense, Payment, savePayment, deleteExpense, deletePayment } from "@/lib/expenseService";
 
 type SortField = 'date' | 'description' | 'category' | 'payerName' | 'amount';
 type SortOrder = 'asc' | 'desc';
-type Mode = "list" | "excel" | "ledger" | "overview";
+type Mode = "list" | "excel" | "ledger" | "overview" | "payments";
 
 const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"]; // Matchar seed-data stavning
 
@@ -113,6 +113,10 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         );
     }, [accountingData.currentExpenses, searchQuery]);
 
+    const filteredPayments = useMemo(() => {
+        return allPayments.filter(p => p.year === year || year === "all");
+    }, [allPayments, year]);
+
     const sortedExpenses = useMemo(() => {
         const sorted = [...filteredExpenses];
         sorted.sort((a, b) => {
@@ -141,16 +145,35 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
     };
 
     const handleDelete = async (id: string, payerName: string) => {
-        if (payerName !== currentUser && !currentUser.includes("Joel")) {
+        const isAdmin = currentUser.toLowerCase().includes("joel");
+        if (payerName !== currentUser && !isAdmin) {
             alert("Du kan bara ta bort dina egna utlägg.");
             return;
         }
         if (confirm("Är du säker på att du vill ta bort detta utlägg?")) {
             try {
                 await deleteExpense(id);
-                setAllExpenses(allExpenses.filter(e => e.id !== id));
+                setAllExpenses(prev => prev.filter(e => e.id !== id));
             } catch (err) {
                 console.error("Error deleting:", err);
+                alert("Kunde inte ta bort utlägget. Kontrollera din anslutning.");
+            }
+        }
+    };
+
+    const handleDeletePayment = async (id: string, fromName: string) => {
+        const isAdmin = currentUser.toLowerCase().includes("joel");
+        if (fromName !== currentUser && !isAdmin) {
+            alert("Du kan bara ta bort dina egna betalningar.");
+            return;
+        }
+        if (confirm("Är du säker på att du vill ta bort denna betalning?")) {
+            try {
+                await deletePayment(id);
+                setAllPayments(prev => prev.filter(p => p.id !== id));
+            } catch (err) {
+                console.error("Error deleting payment:", err);
+                alert("Kunde inte ta bort betalningen.");
             }
         }
     };
@@ -263,6 +286,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         <div className={styles.viewTabs}>
                             <button onClick={() => router.push(`?mode=list&year=${year}`)} className={`${styles.tab} ${mode === 'list' ? styles.active : ''}`}>Loggbok</button>
                             <button onClick={() => router.push(`?mode=ledger&year=${year}`)} className={`${styles.tab} ${mode === 'ledger' ? styles.active : ''}`}>Huvudbok</button>
+                            <button onClick={() => router.push(`?mode=payments&year=${year}`)} className={`${styles.tab} ${mode === 'payments' ? styles.active : ''}`}>Betalningar</button>
                             <button onClick={() => router.push(`?mode=overview&year=${year}`)} className={`${styles.tab} ${mode === 'overview' ? styles.active : ''}`}>Årsöversikt</button>
                         </div>
                         <div className={styles.searchBar}>
@@ -360,6 +384,35 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                                 </td>
                                                 <td className={styles.actionsCell}>
                                                     <button onClick={() => handleDelete(exp.id!, exp.payerName)} className={styles.deleteMini}><Trash2 size={14} /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        ) : mode === 'payments' ? (
+                            <div className={styles.ledgerWrapper}>
+                                <table className={styles.ledgerTable}>
+                                    <thead>
+                                        <tr>
+                                            <th>Datum</th>
+                                            <th>Från</th>
+                                            <th>Till</th>
+                                            <th>Beskrivning</th>
+                                            <th className={styles.amountHead}>Belopp</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredPayments.map(pay => (
+                                            <tr key={pay.id}>
+                                                <td>{pay.date}</td>
+                                                <td>{pay.from}</td>
+                                                <td>{pay.to}</td>
+                                                <td>{pay.description}</td>
+                                                <td className={styles.amount}>{Math.round(pay.amount)} kr</td>
+                                                <td className={styles.actionsCell}>
+                                                    <button onClick={() => handleDeletePayment(pay.id!, pay.from)} className={styles.deleteMini}><Trash2 size={14} /></button>
                                                 </td>
                                             </tr>
                                         ))}

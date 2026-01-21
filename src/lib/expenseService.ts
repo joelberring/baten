@@ -104,6 +104,10 @@ export const getPayments = async (year: string) => {
     }
 };
 
+export const deletePayment = async (id: string) => {
+    return deleteDoc(doc(db, PAYMENTS_COLLECTION, id));
+};
+
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { storage } from "./firebase";
 

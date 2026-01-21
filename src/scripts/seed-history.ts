@@ -39,7 +39,8 @@ const expenses = [
 ];
 
 const payments = [
-    { from: "Avenir Kobetski", to: "Samuel Lundqvist", amount: 8771.67, date: "2025-06-01", description: "Skuldbetalning (båt...)", status: "Slutförd" },
+    { from: "Avenir Kobetski", to: "Samuel Lundqvist", amount: 8771.67, date: "2025-06-01", description: "Skuldbetalning (båt + klubbavgifter...)", status: "Slutförd" },
+    { from: "Joel Berring", to: "Samuel Lundqvist", amount: 7720, date: "2025-05-31", description: "Betalning för båtinköp", status: "Slutförd" },
     { from: "Avenir Kobetski", to: "Joel Berring", amount: 920, date: "2025-05-31", description: "Bet. för segelduk + Biltem...", status: "Slutförd" },
 ];
 
