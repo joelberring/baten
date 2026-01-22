@@ -2,12 +2,13 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, TrendingUp, TrendingDown, Table as TableIcon, List, ArrowRight, Download, ArrowUpDown, ChevronUp, ChevronDown, Trash2, PieChart, Search, X, Smartphone, Image as ImageIcon, ExternalLink, LogOut } from "lucide-react";
+import { Anchor, Plus, Download, Trash2, PieChart, Search, Smartphone, Image as ImageIcon, LogOut } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
 import { useState, use, useEffect, useMemo } from "react";
 import { getExpenses, getPayments, Expense, Payment, savePayment, deleteExpense, deletePayment } from "@/lib/expenseService";
+import { PieChart as RechartsPieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 type SortField = 'date' | 'description' | 'category' | 'payerName' | 'amount';
 type SortOrder = 'asc' | 'desc';
@@ -24,14 +25,12 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
 
     const [allExpenses, setAllExpenses] = useState<Expense[]>([]);
     const [allPayments, setAllPayments] = useState<Payment[]>([]);
-    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState("");
     const [sortConfig, setSortConfig] = useState<{ field: SortField, order: SortOrder }>({ field: 'date', order: 'desc' });
     const [showSettlement, setShowSettlement] = useState(false);
     const [isSavingPayment, setIsSavingPayment] = useState(false);
 
     const fetchData = async () => {
-        setLoading(true);
         try {
             const [expData, payData] = await Promise.all([
                 getExpenses("all"),
@@ -41,8 +40,6 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
             setAllPayments(payData);
         } catch (err) {
             console.error("Error fetching data:", err);
-        } finally {
-            setLoading(false);
         }
     };
 
@@ -327,50 +324,125 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         fetchData();
                         router.push(`?mode=list&year=${year}`);
                     }} /> : mode === 'overview' ? (
-                        <div className={styles.ledgerWrapper}>
-                            <table className={styles.ledgerTable}>
-                                <thead>
-                                    <tr>
-                                        <th>Medlem</th>
-                                        <th>Utl\u00e4gg</th>
-                                        <th>Skuld</th>
-                                        <th>Skuldreglering</th>
-                                        <th>IB ({year})</th>
-                                        <th>Netto Balans</th>
-                                        <th>\u00c5tg\u00e4rd</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {PARTNERS.map(name => {
-                                        const s = accountingData.partnerStats[name];
-                                        const net = s.ib + s.currentPaid - s.currentDebt + s.currentSent - s.currentReceived;
-                                        return (
-                                            <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
-                                                <td style={{ fontWeight: 600 }}>{name}</td>
-                                                <td>{Math.round(s.currentPaid)} kr</td>
-                                                <td>-{Math.round(s.currentDebt)} kr</td>
-                                                <td style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
-                                                    {Math.round(s.currentSent - s.currentReceived)} kr
-                                                </td>
-                                                <td>{Math.round(s.ib)} kr</td>
-                                                <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>
-                                                    {Math.round(net)} kr
-                                                </td>
-                                                <td>
-                                                    {net < 0 && name === currentUser && (
-                                                        <button
-                                                            className={styles.swishLink}
-                                                            onClick={() => alert(`\u00d6ppnar Swish f\u00f6r att betala ${Math.abs(Math.round(net))} kr`)}
-                                                        >
-                                                            Swisha
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
+                        <div>
+                            <div className={styles.ledgerWrapper}>
+                                <table className={styles.ledgerTable}>
+                                    <thead>
+                                        <tr>
+                                            <th>Medlem</th>
+                                            <th>Utl\u00e4gg</th>
+                                            <th>Skuld</th>
+                                            <th>Skuldreglering</th>
+                                            <th>IB ({year})</th>
+                                            <th>Netto Balans</th>
+                                            <th>\u00c5tg\u00e4rd</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {PARTNERS.map(name => {
+                                            const s = accountingData.partnerStats[name];
+                                            const net = s.ib + s.currentPaid - s.currentDebt + s.currentSent - s.currentReceived;
+                                            return (
+                                                <tr key={name} className={name === currentUser ? styles.currentPartnerRow : ''}>
+                                                    <td style={{ fontWeight: 600 }}>{name}</td>
+                                                    <td>{Math.round(s.currentPaid)} kr</td>
+                                                    <td>-{Math.round(s.currentDebt)} kr</td>
+                                                    <td style={{ color: s.currentSent > s.currentReceived ? '#10b981' : '#ef4444' }}>
+                                                        {Math.round(s.currentSent - s.currentReceived)} kr
+                                                    </td>
+                                                    <td>{Math.round(s.ib)} kr</td>
+                                                    <td className={styles.amount} style={{ color: net > 0 ? '#10b981' : net < 0 ? '#ef4444' : 'inherit' }}>
+                                                        {Math.round(net)} kr
+                                                    </td>
+                                                    <td>
+                                                        {net < 0 && name === currentUser && (
+                                                            <button
+                                                                className={styles.swishLink}
+                                                                onClick={() => alert(`\u00d6ppnar Swish f\u00f6r att betala ${Math.abs(Math.round(net))} kr`)}
+                                                            >
+                                                                Swisha
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            {/* Charts Section */}
+                            <div className={styles.chartsSection}>
+                                <div className={styles.chartCard}>
+                                    <h3>Kategorif\u00f6rdelning</h3>
+                                    <div className={styles.chartContainer}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RechartsPieChart>
+                                                <Pie
+                                                    data={Object.entries(accountingData.categoryStats).map(([name, value]) => ({ name, value }))}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={60}
+                                                    outerRadius={80}
+                                                    paddingAngle={5}
+                                                    dataKey="value"
+                                                >
+                                                    {Object.entries(accountingData.categoryStats).map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={[
+                                                            'var(--viggen-orange)',
+                                                            'var(--viggen-navy)',
+                                                            '#10b981',
+                                                            '#f59e0b',
+                                                            '#3b82f6',
+                                                            '#8b5cf6'
+                                                        ][index % 6]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(value: number | string | undefined) => `${Math.round(Number(value || 0))} kr`}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                />
+                                                <Legend verticalAlign="bottom" height={36} />
+                                            </RechartsPieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+
+                                <div className={styles.chartCard}>
+                                    <h3>Utl\u00e4gg per medlem</h3>
+                                    <div className={styles.chartContainer}>
+                                        <ResponsiveContainer width="100%" height="100%">
+                                            <RechartsPieChart>
+                                                <Pie
+                                                    data={PARTNERS.map(name => ({
+                                                        name: name.split(' ')[0],
+                                                        value: accountingData.partnerStats[name]?.currentPaid || 0
+                                                    }))}
+                                                    cx="50%"
+                                                    cy="50%"
+                                                    innerRadius={60}
+                                                    outerRadius={80}
+                                                    paddingAngle={5}
+                                                    dataKey="value"
+                                                >
+                                                    {PARTNERS.map((entry, index) => (
+                                                        <Cell key={`cell-${index}`} fill={[
+                                                            'var(--viggen-orange)',
+                                                            'var(--viggen-navy)',
+                                                            '#3b82f6'
+                                                        ][index % 3]} />
+                                                    ))}
+                                                </Pie>
+                                                <Tooltip
+                                                    formatter={(value: number | string | undefined) => `${Math.round(Number(value || 0))} kr`}
+                                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                                                />
+                                                <Legend verticalAlign="bottom" height={36} />
+                                            </RechartsPieChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : mode === 'ledger' ? (
                         <div className={styles.ledgerWrapper}>
@@ -473,12 +545,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
             </div>
 
             {/* Floating Action Button for New Expense */}
-            {mode !== 'excel' && (
-                <button className={styles.fab} onClick={() => router.push(`?mode=excel&year=${year}`)}>
-                    <Plus size={24} color="white" />
-                    <span className={styles.fabLabel}>Nytt Utlägg</span>
-                </button>
-            )}
-        </main>
+            {
+                mode !== 'excel' && (
+                    <button className={styles.fab} onClick={() => router.push(`?mode=excel&year=${year}`)}>
+                        <Plus size={24} color="white" />
+                        <span className={styles.fabLabel}>Nytt Utlägg</span>
+                    </button>
+                )
+            }
+        </main >
     );
 }
