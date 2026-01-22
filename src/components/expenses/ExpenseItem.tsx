@@ -3,9 +3,15 @@
 import { MessageSquare, Calendar, Image as ImageIcon, Trash2, Users } from "lucide-react";
 import styles from "./expenses.module.css";
 
-export default function ExpenseItem({ expense, onDelete, currentUserName }: { expense: any, onDelete?: (id: string, payer: string) => void, currentUserName?: string }) {
+export default function ExpenseItem({ expense, onDelete, onUpdate, currentUserName }: { expense: any, onDelete?: (id: string, payer: string) => void, onUpdate?: (id: string, updates: any) => void, currentUserName?: string }) {
     const canDelete = currentUserName && (expense.payerName === currentUserName || currentUserName.includes("Joel"));
     const participantCount = expense.participants ? expense.participants.length : 3; // Default to 3 if legacy
+
+    const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        if (onUpdate) {
+            onUpdate(expense.id, { category: e.target.value });
+        }
+    };
 
     // Determine if amount should be orange (if I paid, or if I'm involved)
     // For simplicity in feed: Orange = high visibility/action color
@@ -30,7 +36,18 @@ export default function ExpenseItem({ expense, onDelete, currentUserName }: { ex
 
             <div className={styles.content}>
                 <div className={styles.description}>{expense.description}</div>
-                <span className={styles.categoryBadge}>{expense.category}</span>
+                <select
+                    className={styles.categorySelect}
+                    value={expense.category}
+                    onChange={handleCategoryChange}
+                >
+                    <option value="Mat">Mat & Dryck</option>
+                    <option value="Hamnavgift">Hamnavgift</option>
+                    <option value="Bränsle">Bränsle</option>
+                    <option value="Underhåll">Underhåll & Fix</option>
+                    <option value="Försäkring">Försäkring</option>
+                    <option value="Övrigt">Övrigt</option>
+                </select>
             </div>
 
             <div className={styles.footer}>

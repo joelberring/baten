@@ -144,6 +144,39 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         }));
     };
 
+    const handleUpdateExpense = async (id: string, updates: Partial<Expense>) => {
+        try {
+            const { updateExpense } = await import("@/lib/expenseService");
+            await updateExpense(id, updates);
+            setAllExpenses(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+        } catch (err) {
+            console.error("Error updating expense:", err);
+            alert("Kunde inte uppdatera utlägget.");
+        }
+    };
+
+    const handleExportExcel = async () => {
+        try {
+            const XLSX = await import("xlsx");
+            const dataToExport = sortedExpenses.map(e => ({
+                Datum: e.date,
+                Beskrivning: e.description,
+                Kategori: e.category,
+                Betalare: e.payerName,
+                Belopp: Math.round(e.amount),
+                Deltagare: e.participants?.join(", ") || "Alla"
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Utlägg");
+            XLSX.writeFile(workbook, `Viggen_Utlägg_${year}.xlsx`);
+        } catch (err) {
+            console.error("Export error:", err);
+            alert("Kunde inte exportera till Excel.");
+        }
+    };
+
     const handleDelete = async (id: string, payerName: string) => {
         const isAdmin = currentUser.toLowerCase().includes("joel");
         if (payerName !== currentUser && !isAdmin) {
@@ -258,9 +291,14 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         <Search size={16} className={styles.searchIcon} />
                         <input type="text" placeholder="Sök utlägg..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
-                    <button className={styles.primaryAction} onClick={() => router.push(`?mode=excel&year=${year}`)}>
-                        <Plus size={18} /> Nytt utlägg
-                    </button>
+                    <div className={styles.actionButtonsGroup}>
+                        <button className={styles.secondaryAction} onClick={handleExportExcel}>
+                            <Download size={18} /> Exportera
+                        </button>
+                        <button className={styles.primaryAction} onClick={() => router.push(`?mode=excel&year=${year}`)}>
+                            <Plus size={18} /> Nytt utlägg
+                        </button>
+                    </div>
                 </div>
 
                 {/* Content Area */}
@@ -354,7 +392,20 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                         <tr key={exp.id}>
                                             <td>{exp.date}</td>
                                             <td style={{ fontWeight: 500 }}>{exp.description}</td>
-                                            <td>{exp.category}</td>
+                                            <td>
+                                                <select
+                                                    value={exp.category}
+                                                    onChange={(e) => handleUpdateExpense(exp.id!, { category: e.target.value })}
+                                                    className={styles.inlineCategorySelect}
+                                                >
+                                                    <option value="Mat">Mat & Dryck</option>
+                                                    <option value="Hamnavgift">Hamnavgift</option>
+                                                    <option value="Bränsle">Bränsle</option>
+                                                    <option value="Underhåll">Underhåll & Fix</option>
+                                                    <option value="Försäkring">Försäkring</option>
+                                                    <option value="Övrigt">Övrigt</option>
+                                                </select>
+                                            </td>
                                             <td>{exp.payerName}</td>
                                             <td className={styles.splitCell}>{exp.participants ? `${exp.participants.length}/3` : "3/3"}</td>
                                             <td className={styles.amount}>{Math.round(exp.amount)} kr</td>
@@ -412,6 +463,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                                     key={exp.id}
                                     expense={exp}
                                     onDelete={handleDelete}
+                                    onUpdate={handleUpdateExpense}
                                     currentUserName={currentUser}
                                 />
                             ))}

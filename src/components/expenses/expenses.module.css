@@ -79,14 +79,25 @@
     color: var(--text-main);
 }
 
-.categoryBadge {
+.categorySelect {
     display: inline-block;
     font-size: 0.75rem;
     background: var(--bg-secondary);
-    padding: 0.2rem 0.6rem;
+    padding: 0.2rem 0.4rem;
     border-radius: 12px;
     color: var(--text-secondary);
     margin-bottom: 0.75rem;
+    border: 1px solid var(--border-light);
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
+.categorySelect:hover {
+    border-color: var(--viggen-orange);
+    color: var(--viggen-orange);
 }
 
 .footer {

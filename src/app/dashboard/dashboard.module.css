@@ -626,6 +626,32 @@
     flex-wrap: wrap;
 }
 
+.actionButtonsGroup {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.secondaryAction {
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border-light);
+    padding: 0.6rem 1.2rem;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s;
+}
+
+.secondaryAction:hover {
+    border-color: var(--viggen-orange);
+    color: var(--viggen-orange);
+}
+
 .primaryAction {
     background: var(--viggen-orange);
     color: white;
@@ -638,4 +664,25 @@
     display: inline-flex;
     align-items: center;
     gap: 0.4rem;
+}
+
+.inlineCategorySelect {
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-family: inherit;
+    outline: none;
+    -webkit-appearance: none;
+    appearance: none;
+    transition: all 0.2s;
+}
+
+.inlineCategorySelect:hover,
+.inlineCategorySelect:focus {
+    border-color: var(--border-light);
+    background: var(--bg-main);
 }

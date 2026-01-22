@@ -71,6 +71,11 @@ export const deleteExpense = async (id: string) => {
     return deleteDoc(doc(db, EXPENSES_COLLECTION, id));
 };
 
+export const updateExpense = async (id: string, updates: Partial<Expense>) => {
+    const { updateDoc } = await import("firebase/firestore");
+    return updateDoc(doc(db, EXPENSES_COLLECTION, id), updates);
+};
+
 export const saveMultipleExpenses = async (expenses: Omit<Expense, "id" | "createdAt" | "year">[]) => {
     const promises = expenses.map(e => saveExpense(e));
     return Promise.all(promises);
