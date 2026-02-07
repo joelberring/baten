@@ -11,7 +11,7 @@ export default function ExpenseItem({ expense, onDelete, onUpdate, currentUserNa
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         if (onUpdate && expense.id) {
-            onUpdate(expense.id, { category: e.target.value as any });
+            onUpdate(expense.id, { category: e.target.value as Expense['category'] });
         }
     };
 

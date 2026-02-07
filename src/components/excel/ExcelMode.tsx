@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import styles from "./excel.module.css";
 import { Save, Trash2, Plus, CheckCircle2, Camera, Loader2 } from "lucide-react";
-import { saveExpense, updateExpense, deleteExpense, getExpenses, uploadReceipt, Expense } from "@/lib/expenseService";
+import { saveExpense, updateExpense, deleteExpense, uploadReceipt, Expense } from "@/lib/expenseService";
 import { useSession } from "next-auth/react";
 
 const PARTNERS = ["Joel Berring", "Avenir Kobetski", "Samuel Lundqvist"];
@@ -20,7 +20,7 @@ interface ExcelRow {
     receiptUrl?: string;
 }
 
-export default function ExcelMode({ onSave, initialYear, initialExpenses = [] }: { onSave?: () => void, initialYear?: string, initialExpenses?: Expense[] }) {
+export default function ExcelMode({ onSave, initialExpenses = [] }: { onSave?: () => void, initialExpenses?: Expense[] }) {
     const { data: session } = useSession();
     const [rows, setRows] = useState<ExcelRow[]>([]);
     const [deletedIds, setDeletedIds] = useState<string[]>([]);
@@ -28,7 +28,7 @@ export default function ExcelMode({ onSave, initialYear, initialExpenses = [] }:
     const [isLoading, setIsLoading] = useState(true);
     const [uploadingId, setUploadingId] = useState<string | number | null>(null);
 
-    const year = initialYear || new Date().getFullYear().toString();
+
 
     useEffect(() => {
         if (initialExpenses.length > 0) {

@@ -15,6 +15,7 @@ export const authOptions = {
         maxAge: 30 * 24 * 60 * 60, // 30 dagar
     },
     callbacks: {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async signIn({ user }: any) {
             const allowedEmails = [
                 "joel@berring.se",
@@ -27,14 +28,17 @@ export const authOptions = {
             }
             return false;
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async jwt({ token, user }: any) {
             if (user) {
                 token.id = user.id;
             }
             return token;
         },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async session({ session, token }: any) {
             if (session?.user) {
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
                 // @ts-ignore
                 session.user.id = token.id;
             }
