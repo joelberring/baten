@@ -1,15 +1,17 @@
 "use client";
 
-import { MessageSquare, Calendar, Image as ImageIcon, Trash2, Users } from "lucide-react";
+import { Image as ImageIcon, Trash2, Users } from "lucide-react";
 import styles from "./expenses.module.css";
 
-export default function ExpenseItem({ expense, onDelete, onUpdate, currentUserName }: { expense: any, onDelete?: (id: string, payer: string) => void, onUpdate?: (id: string, updates: any) => void, currentUserName?: string }) {
+import { Expense } from "@/lib/expenseService";
+
+export default function ExpenseItem({ expense, onDelete, onUpdate, currentUserName }: { expense: Expense, onDelete?: (id: string, payer: string) => void, onUpdate?: (id: string, updates: Partial<Expense>) => void, currentUserName?: string }) {
     const canDelete = currentUserName && (expense.payerName === currentUserName || currentUserName.includes("Joel"));
     const participantCount = expense.participants ? expense.participants.length : 3; // Default to 3 if legacy
 
     const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        if (onUpdate) {
-            onUpdate(expense.id, { category: e.target.value });
+        if (onUpdate && expense.id) {
+            onUpdate(expense.id, { category: e.target.value as any });
         }
     };
 
@@ -61,7 +63,7 @@ export default function ExpenseItem({ expense, onDelete, onUpdate, currentUserNa
                         </a>
                     )}
                     {canDelete && onDelete && (
-                        <button onClick={() => onDelete(expense.id, expense.payerName)} className={`${styles.iconBtn} ${styles.deleteBtn}`}>
+                        <button onClick={() => onDelete(expense.id!, expense.payerName!)} className={`${styles.iconBtn} ${styles.deleteBtn}`}>
                             <Trash2 size={16} />
                         </button>
                     )}

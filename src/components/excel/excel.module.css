@@ -1,268 +1,243 @@
 /* Container */
 .excelContainer {
-    max-width: 600px;
+    width: 100%;
+    max-width: 1200px;
     margin: 0 auto;
     background: var(--bg-main);
     border-radius: 20px;
     padding: 1.5rem;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 200px);
 }
 
 .excelHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
+    flex-shrink: 0;
 }
 
 .excelHeader h2 {
-    font-size: 1.25rem;
+    font-size: 1.5rem;
     font-weight: 700;
 }
 
-.card {
-    background: var(--bg-main);
-    border: 1px solid var(--border-light);
-    border-radius: 16px;
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    position: relative;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+.totalBadge {
+    background: var(--viggen-orange-light, #fff7ed);
+    color: var(--viggen-orange);
+    padding: 0.5rem 1rem;
+    border-radius: 12px;
+    font-weight: 700;
 }
 
-.deleteRowBtn {
-    position: absolute;
-    top: 1rem;
-    right: 1rem;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 50%;
-    transition: background 0.2s, color 0.2s;
-}
-
-.deleteRowBtn:hover {
-    background: #fee2e2;
-    color: #ef4444;
-}
-
-/* Form Fields */
-.amountGroup {
-    text-align: center;
-    margin-bottom: 1.5rem;
-    position: relative;
-}
-
-.amountInput {
-    width: 100%;
-    text-align: center;
-    font-size: 3rem;
-    font-weight: 800;
-    color: var(--text-main);
-    border: none;
-    background: transparent;
-    outline: none;
-    padding: 0.5rem 0;
-}
-
-.amountInput::placeholder {
-    color: var(--border-light);
-}
-
-.currencyLabel {
-    display: block;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    font-weight: 600;
-    margin-top: -0.5rem;
-}
-
-.inputGroup {
-    margin-bottom: 1.5rem;
-}
-
-.inputLabel {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
-    font-weight: 500;
-}
-
-.textInput {
-    width: 100%;
-    padding: 0.8rem 0;
-    font-size: 1.1rem;
-    font-weight: 500;
-    color: var(--text-main);
-    border: none;
-    border-bottom: 2px solid var(--border-light);
-    background: transparent;
-    transition: border-color 0.2s;
-    outline: none;
-}
-
-.textInput:focus {
-    border-color: var(--viggen-orange);
-}
-
-.categorySelect {
-    width: 100%;
-    padding: 0.8rem;
-    font-size: 1rem;
-    background: var(--bg-secondary);
+/* Table Wrapper */
+.tableWrapper {
+    flex-grow: 1;
+    overflow: auto;
     border: 1px solid var(--border-light);
     border-radius: 12px;
-    color: var(--text-main);
-    cursor: pointer;
-    appearance: none;
-    /* Remove default arrow */
-    -webkit-appearance: none;
-}
-
-/* Split Toggles */
-.splitSection {
-    background: var(--bg-secondary);
-    padding: 1rem;
-    border-radius: 12px;
-    margin-bottom: 1.5rem;
-}
-
-.splitLabel {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.75rem;
-}
-
-.avatars {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
-}
-
-.avatarToggle {
-    border: none;
-    background: transparent;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.4rem;
-    opacity: 0.5;
-    transition: all 0.2s;
-}
-
-.avatarToggle.active {
-    opacity: 1;
-    transform: scale(1.05);
-}
-
-.avatarCircle {
-    width: 48px;
-    height: 48px;
     background: white;
-    border: 2px solid var(--border-light);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    transition: all 0.2s;
 }
 
-.active .avatarCircle {
-    border-color: var(--viggen-orange);
-    color: var(--viggen-orange);
-    background: #fff7ed;
-    box-shadow: 0 4px 10px rgba(226, 88, 34, 0.2);
+.excelTable {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+    min-width: 800px;
 }
 
-.avatarName {
-    font-size: 0.75rem;
+.excelTable th {
+    position: sticky;
+    top: 0;
+    background: #f8fafc;
+    z-index: 10;
+    padding: 0.75rem 1rem;
+    text-align: left;
     font-weight: 600;
-}
-
-/* Receipt */
-.receiptSection {
-    display: flex;
-    justify-content: center;
-    margin-bottom: 1rem;
-}
-
-.uploadBtn {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.6rem 1rem;
-    background: var(--bg-secondary);
-    border: 1px dashed var(--border-light);
-    border-radius: 20px;
     color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 0.85rem;
+    border-bottom: 2px solid var(--border-light);
+    white-space: nowrap;
+}
+
+.excelTable td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid var(--border-light);
+    vertical-align: middle;
+}
+
+.excelTable tr:hover {
+    background: #f1f5f9;
+}
+
+.excelTable tr.newRow {
+    background: #f0fdf4;
+}
+
+/* Form Controls Inside Table */
+.cellInput {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
     transition: all 0.2s;
 }
 
-.uploadBtn:hover {
+.cellInput:focus {
+    background: white;
     border-color: var(--viggen-orange);
-    color: var(--viggen-orange);
+    box-shadow: 0 0 0 2px rgba(226, 88, 34, 0.1);
 }
 
-.uploadBtn.hasFile {
-    background: #ecfdf5;
-    border-color: #10b981;
-    color: #059669;
+.cellSelect {
+    width: 100%;
+    padding: 0.4rem;
+    border: 1px solid transparent;
+    background: transparent;
+    border-radius: 4px;
+    font-size: 0.9rem;
+    outline: none;
+    cursor: pointer;
+}
+
+.cellSelect:focus {
+    background: white;
+    border-color: var(--viggen-orange);
+}
+
+/* Participants Cell */
+.participantsCell {
+    display: flex;
+    gap: 0.3rem;
+    flex-wrap: nowrap;
+}
+
+.avatarMini {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border-light);
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.7rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    flex-shrink: 0;
+    color: var(--text-secondary);
+}
+
+.avatarMini.active {
+    border-color: var(--viggen-orange);
+    background: #fff7ed;
+    color: var(--viggen-orange);
+    transform: scale(1.1);
 }
 
 /* Actions */
-.mainActions {
-    position: sticky;
-    bottom: 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    z-index: 50;
+.deleteBtn {
+    color: #94a3b8;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0.4rem;
+    border-radius: 6px;
+    transition: all 0.2s;
 }
 
-.saveBtn {
-    width: 100%;
-    padding: 1.2rem;
-    background: var(--viggen-orange);
-    color: white;
+.deleteBtn:hover {
+    color: #ef4444;
+    background: #fee2e2;
+}
+
+.uploadIconBtn {
+    color: #94a3b8;
+    background: none;
     border: none;
-    border-radius: 50px;
-    font-size: 1.1rem;
-    font-weight: 800;
     cursor: pointer;
-    box-shadow: 0 4px 15px rgba(226, 88, 34, 0.4);
+    padding: 0.4rem;
+    border-radius: 6px;
     transition: all 0.2s;
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
 }
 
-.saveBtn:active {
-    transform: scale(0.98);
+.uploadIconBtn:hover {
+    color: var(--viggen-orange);
+}
+
+.uploadIconBtn.hasFile {
+    color: #10b981;
+}
+
+.mainActions {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
 }
 
 .addMoreBtn {
-    background: transparent;
-    border: none;
+    background: #f1f5f9;
     color: var(--text-secondary);
-    font-size: 0.9rem;
+    border: 1px solid var(--border-light);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    font-weight: 600;
     cursor: pointer;
-    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
 }
 
-/* Desktop override if needed */
-@media (min-width: 768px) {
-    .card {
-        padding: 2rem;
+.addMoreBtn:hover {
+    background: #e2e8f0;
+    color: var(--text-main);
+}
+
+.saveBtn {
+    background: var(--viggen-orange);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.75rem 2rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(226, 88, 34, 0.3);
+    transition: all 0.2s;
+}
+
+.saveBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(226, 88, 34, 0.4);
+}
+
+.saveBtn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+@media (max-width: 768px) {
+    .excelContainer {
+        height: auto;
+        padding: 1rem;
+    }
+
+    .tableWrapper {
+        overflow-x: auto;
     }
 }

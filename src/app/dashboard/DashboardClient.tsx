@@ -2,7 +2,7 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { redirect, useRouter } from "next/navigation";
-import { Anchor, Plus, Download, Trash2, PieChart, Search, Smartphone, Image as ImageIcon, LogOut } from "lucide-react";
+import { Anchor, Plus, Trash2, PieChart, Search, Smartphone, Image as ImageIcon, LogOut } from "lucide-react";
 import styles from "./dashboard.module.css";
 import ExpenseItem from "@/components/expenses/ExpenseItem";
 import ExcelMode from "@/components/excel/ExcelMode";
@@ -152,27 +152,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
         }
     };
 
-    const handleExportExcel = async () => {
-        try {
-            const XLSX = await import("xlsx");
-            const dataToExport = sortedExpenses.map(e => ({
-                Datum: e.date,
-                Beskrivning: e.description,
-                Kategori: e.category,
-                Betalare: e.payerName,
-                Belopp: Math.round(e.amount),
-                Deltagare: e.participants?.join(", ") || "Alla"
-            }));
 
-            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
-            const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "Utlägg");
-            XLSX.writeFile(workbook, `Viggen_Utlägg_${year}.xlsx`);
-        } catch (err) {
-            console.error("Export error:", err);
-            alert("Kunde inte exportera till Excel.");
-        }
-    };
 
     const handleDelete = async (id: string, payerName: string) => {
         const isAdmin = currentUser.toLowerCase().includes("joel");
@@ -289,8 +269,8 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         <input type="text" placeholder="Sök utlägg..." value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} />
                     </div>
                     <div className={styles.actionButtonsGroup}>
-                        <button className={styles.secondaryAction} onClick={handleExportExcel}>
-                            <Download size={18} /> Exportera
+                        <button className={styles.secondaryAction} onClick={() => router.push(`?mode=excel&year=${year}`)}>
+                            <Smartphone size={18} /> Excel-läge
                         </button>
                         <button className={styles.primaryAction} onClick={() => router.push(`?mode=excel&year=${year}`)}>
                             <Plus size={18} /> Nytt utlägg
@@ -320,7 +300,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         </div>
                     )}
 
-                    {mode === 'excel' ? <ExcelMode onSave={() => {
+                    {mode === 'excel' ? <ExcelMode initialYear={year} onSave={() => {
                         fetchData();
                         router.push(`?mode=list&year=${year}`);
                     }} /> : mode === 'overview' ? (
