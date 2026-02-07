@@ -20,7 +20,7 @@ interface ExcelRow {
     receiptUrl?: string;
 }
 
-export default function ExcelMode({ onSave, initialYear }: { onSave?: () => void, initialYear?: string }) {
+export default function ExcelMode({ onSave, initialYear, initialExpenses = [] }: { onSave?: () => void, initialYear?: string, initialExpenses?: Expense[] }) {
     const { data: session } = useSession();
     const [rows, setRows] = useState<ExcelRow[]>([]);
     const [deletedIds, setDeletedIds] = useState<string[]>([]);
@@ -30,11 +30,9 @@ export default function ExcelMode({ onSave, initialYear }: { onSave?: () => void
 
     const year = initialYear || new Date().getFullYear().toString();
 
-    const fetchExpenses = useCallback(async () => {
-        setIsLoading(true);
-        try {
-            const expenses = await getExpenses(year);
-            const mappedRows: ExcelRow[] = expenses.map(e => ({
+    useEffect(() => {
+        if (initialExpenses.length > 0) {
+            const mappedRows: ExcelRow[] = initialExpenses.map(e => ({
                 id: e.id!,
                 date: e.date,
                 description: e.description,
@@ -44,17 +42,17 @@ export default function ExcelMode({ onSave, initialYear }: { onSave?: () => void
                 participants: e.participants || PARTNERS,
                 receiptUrl: e.receiptUrl
             }));
+            // Sortera efter datum (nyaste först)
+            mappedRows.sort((a, b) => b.date.localeCompare(a.date));
             setRows(mappedRows);
-        } catch (err) {
-            console.error("Error fetching expenses:", err);
-        } finally {
             setIsLoading(false);
+        } else if (isLoading) {
+            // Om vi inte har fått några utlägg än, vänta lite innan vi slutar ladda
+            // (DashboardClient kanske fortfarande hämtar data)
+            const timer = setTimeout(() => setIsLoading(false), 1000);
+            return () => clearTimeout(timer);
         }
-    }, [year]);
-
-    useEffect(() => {
-        fetchExpenses();
-    }, [fetchExpenses]);
+    }, [initialExpenses, isLoading]);
 
     const addRow = () => {
         const newRow: ExcelRow = {
@@ -159,7 +157,7 @@ export default function ExcelMode({ onSave, initialYear }: { onSave?: () => void
     return (
         <div className={styles.excelContainer}>
             <div className={styles.excelHeader}>
-                <h2>Excel-läge ({year})</h2>
+                <h2>Excel-läge (Alla utlägg)</h2>
                 <div className={styles.totalBadge}>
                     Totalt: {Math.round(rows.reduce((sum, r) => sum + (parseFloat(r.amount?.toString() || '0') || 0), 0))} kr
                 </div>

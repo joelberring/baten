@@ -300,7 +300,7 @@ export default function DashboardClient({ searchParams }: { searchParams: Promis
                         </div>
                     )}
 
-                    {mode === 'excel' ? <ExcelMode initialYear={year} onSave={() => {
+                    {mode === 'excel' ? <ExcelMode initialYear={year} initialExpenses={allExpenses} onSave={() => {
                         fetchData();
                         router.push(`?mode=list&year=${year}`);
                     }} /> : mode === 'overview' ? (
