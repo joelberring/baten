@@ -18,7 +18,7 @@ export const authOptions = {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         async signIn({ user }: any) {
             const allowedEmails = [
-                "joel@berring.se",
+                "joel.berring@gmail.com",
                 "avekob@gmail.com",
                 "samuelolundqvist@gmail.com",
             ];
